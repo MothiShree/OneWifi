@@ -136,6 +136,8 @@ static int neighbor_convert_hal_to_sample(unsigned int radio_index, wifi_neighbo
     entry->sig = rssi_to_above_noise_floor(hal->ap_SignalStrength);
     entry->lastseen = time(NULL); /* TODO: get the time of the scan ? */
     entry->chanwidth = str_to_dpp_chan_width(hal->ap_OperatingChannelBandwidth);
+    wifi_util_dbg_print(WIFI_SM, "%s:%d: MJ channel bandwidth: %d BW at hal:%s\n",
+        __func__, __LINE__, entry->chanwidth, hal->ap_OperatingChannelBandwidth);
 
     wifi_util_dbg_print(WIFI_SM, "%s:%d: Fetched neighbor %s sample on %s channel %u SSID %s\n",
         __func__, __LINE__, survey_type_to_str(survey_type),

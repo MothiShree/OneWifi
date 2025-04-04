@@ -64,29 +64,40 @@ typedef struct {
 } str_to_dpp_chan_width_t;
 
 static const str_to_dpp_chan_width_t chan_width_mapping[] = {
-    { "11A",             RADIO_CHAN_WIDTH_20MHZ},
-    { "11B",             RADIO_CHAN_WIDTH_20MHZ},
-    { "11G",             RADIO_CHAN_WIDTH_20MHZ},
-    { "11NA_HT20",       RADIO_CHAN_WIDTH_20MHZ},
-    { "11NG_HT20",       RADIO_CHAN_WIDTH_20MHZ},
-    { "11NA_HT40PLUS",   RADIO_CHAN_WIDTH_40MHZ_ABOVE},
-    { "11NA_HT40MINUS",  RADIO_CHAN_WIDTH_40MHZ_BELOW},
-    { "11NG_HT40PLUS",   RADIO_CHAN_WIDTH_40MHZ_ABOVE},
-    { "11NG_HT40MINUS",  RADIO_CHAN_WIDTH_40MHZ_BELOW},
-    { "11NG_HT40",       RADIO_CHAN_WIDTH_40MHZ},
-    { "11NA_HT40",       RADIO_CHAN_WIDTH_40MHZ},
-    { "11AC_VHT20",      RADIO_CHAN_WIDTH_20MHZ},
-    { "11AC_VHT40PLUS",  RADIO_CHAN_WIDTH_40MHZ_ABOVE},
-    { "11AC_VHT40MINUS", RADIO_CHAN_WIDTH_40MHZ_BELOW},
-    { "11AC_VHT40",      RADIO_CHAN_WIDTH_40MHZ},
-    { "11AC_VHT80",      RADIO_CHAN_WIDTH_80MHZ},
-    { "160",             RADIO_CHAN_WIDTH_160MHZ},
-    { "80+80",           RADIO_CHAN_WIDTH_80_PLUS_80MHZ},
-    { "80",              RADIO_CHAN_WIDTH_80MHZ},
-    { "40",              RADIO_CHAN_WIDTH_40MHZ},
-    { "20",              RADIO_CHAN_WIDTH_20MHZ},
+    { "11A",             RADIO_CHAN_WIDTH_20MHZ         },
+    { "11B",             RADIO_CHAN_WIDTH_20MHZ         },
+    { "11G",             RADIO_CHAN_WIDTH_20MHZ         },
+    { "11NA_HT20",       RADIO_CHAN_WIDTH_20MHZ         },
+    { "11NG_HT20",       RADIO_CHAN_WIDTH_20MHZ         },
+    { "11NA_HT40PLUS",   RADIO_CHAN_WIDTH_40MHZ_ABOVE   },
+    { "11NA_HT40MINUS",  RADIO_CHAN_WIDTH_40MHZ_BELOW   },
+    { "11NG_HT40PLUS",   RADIO_CHAN_WIDTH_40MHZ_ABOVE   },
+    { "11NG_HT40MINUS",  RADIO_CHAN_WIDTH_40MHZ_BELOW   },
+    { "11NG_HT40",       RADIO_CHAN_WIDTH_40MHZ         },
+    { "11NA_HT40",       RADIO_CHAN_WIDTH_40MHZ         },
+    { "11AC_VHT20",      RADIO_CHAN_WIDTH_20MHZ         },
+    { "11AC_VHT40PLUS",  RADIO_CHAN_WIDTH_40MHZ_ABOVE   },
+    { "11AC_VHT40MINUS", RADIO_CHAN_WIDTH_40MHZ_BELOW   },
+    { "11AC_VHT40",      RADIO_CHAN_WIDTH_40MHZ         },
+    { "11AC_VHT80",      RADIO_CHAN_WIDTH_80MHZ         },
+    { "160",             RADIO_CHAN_WIDTH_160MHZ        },
+    { "80+80",           RADIO_CHAN_WIDTH_80_PLUS_80MHZ },
+    { "80",              RADIO_CHAN_WIDTH_80MHZ         },
+    { "40",              RADIO_CHAN_WIDTH_40MHZ         },
+    { "20",              RADIO_CHAN_WIDTH_20MHZ         },
+    { "320",             RADIO_CHAN_WIDTH_320MHZ        }, // Wi-Fi 7, 320 MHz channel width
+    { "160+160",         RADIO_CHAN_WIDTH_160_PLUS_160MHZ} // Wi-Fi 7, 160+160 MHz channel width
 };
 
+void print_channel_width(const char *mode) {
+    for (int i = 0; i < 23; i++) {
+        if (strcmp(chan_width_mapping[i].mode, mode) == 0) {
+            wifi_util_error_print(WIFI_SM, "%s:%d MJ %s -> %dMHz\n", __func__, __LINE__, mode, chan_width_mapping[i].width);
+            return;
+        }
+    }
+    wifi_util_error_print(WIFI_SM, "%s:%d MJ %s -> Not Found\n", __func__, __LINE__, mode);
+}
 
 radio_type_t freq_band_to_dpp_radio_type(wifi_freq_bands_t freq_band)
 {
@@ -203,10 +214,13 @@ radio_chanwidth_t str_to_dpp_chan_width(char *str)
 {
     for (size_t i = 0; i < ARRAY_SIZE(chan_width_mapping); i++) {
         if (strcmp(str, chan_width_mapping[i].str_width) == 0) {
+            wifi_util_error_print(WIFI_SM, "%s:%d MJ BW:%d str:%s chan_width_map:%s \n",__func__, __LINE__, chan_width_mapping[i].chan_width, str, chan_width_mapping[i].str_width);   
             return chan_width_mapping[i].chan_width;
         }
     }
-
+    print_channel_width("320");
+    print_channel_width("160+160");
+    wifi_util_error_print(WIFI_SM, "%s:%d MJ str:%s \n",__func__, __LINE__, str);   
     return RADIO_CHAN_WIDTH_20MHZ;
 }
 
