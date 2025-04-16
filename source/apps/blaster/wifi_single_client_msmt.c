@@ -193,6 +193,11 @@ static void printBlastMetricData(single_client_msmt_type_t msmtType, wifi_actvie
             {
                 snprintf(chanBw, MAX_STR_LEN, "\"%s\"", "set to _160MHz");
             }
+            
+            else if ( strstr("320MHz", staData->sta_active_msmt_data[0].Operating_channelwidth) )
+            {
+                snprintf(chanBw, MAX_STR_LEN, "\"%s\"", "set to _320MHz");
+            }
 
             if (strstr("2.4GHz", radio_stats[radioIdx]->frequency_band))
             {
@@ -884,6 +889,11 @@ void upload_single_client_active_msmt_data(blaster_hashmap_t *sta_info)
             wifi_util_dbg_print(WIFI_BLASTER, "RDK_LOG_DEBUG, operating_channel_bandwidth = \"%s\"\n", "set to _160MHz" );
             avro_value_set_enum(&optional, avro_schema_enum_get_by_name(avro_value_get_schema(&optional), "_160MHz"));
         }
+        else if ( strstr("320MHz", sta_data->sta_active_msmt_data[0].Operating_channelwidth) )
+        {
+            wifi_util_dbg_print(WIFI_BLASTER, "RDK_LOG_DEBUG, operating_channel_bandwidth = \"%s\"\n", "set to _320MHz" );
+            avro_value_set_enum(&optional, avro_schema_enum_get_by_name(avro_value_get_schema(&optional), "_320MHz"));
+        }
     }
     if ( CHK_AVRO_ERR ) {
          wifi_util_dbg_print(WIFI_BLASTER, "%s:%d: Avro error: %s\n", __func__, __LINE__, avro_strerror());
@@ -1169,7 +1179,7 @@ void upload_single_client_active_msmt_data(blaster_hashmap_t *sta_info)
 
     wifi_util_dbg_print(WIFI_BLASTER, "AVRO packing done\n");
     wifi_mgr->wifi_ccsp.desc.CcspTraceInfoRdkb_fn("%s-%d AVRO packing done\n", __FUNCTION__, __LINE__);
-#if 0
+#if 1
     char *json;
     if (!avro_value_to_json(&adr, 1, &json))
     {
