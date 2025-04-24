@@ -85,6 +85,7 @@ static const str_to_dpp_chan_width_t chan_width_mapping[] = {
     { "80",              RADIO_CHAN_WIDTH_80MHZ},
     { "40",              RADIO_CHAN_WIDTH_40MHZ},
     { "20",              RADIO_CHAN_WIDTH_20MHZ},
+    { "320",             RADIO_CHAN_WIDTH_320MHZ},
 };
 
 
@@ -203,6 +204,7 @@ radio_chanwidth_t str_to_dpp_chan_width(char *str)
 {
     for (size_t i = 0; i < ARRAY_SIZE(chan_width_mapping); i++) {
         if (strcmp(str, chan_width_mapping[i].str_width) == 0) {
+            wifi_util_error_print(WIFI_SM, "%s:%d MJ BW:%d str:%s chan_width_map:%s \n",__func__, __LINE__, chan_width_mapping[i].chan_width, str, chan_width_mapping[i].str_width);
             return chan_width_mapping[i].chan_width;
         }
     }
