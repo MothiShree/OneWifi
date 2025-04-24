@@ -85,8 +85,7 @@ static const str_to_dpp_chan_width_t chan_width_mapping[] = {
     { "80",              RADIO_CHAN_WIDTH_80MHZ         },
     { "40",              RADIO_CHAN_WIDTH_40MHZ         },
     { "20",              RADIO_CHAN_WIDTH_20MHZ         },
-    { "320",             RADIO_CHAN_WIDTH_320MHZ        }, // Wi-Fi 7, 320 MHz channel width
-    { "160+160",         RADIO_CHAN_WIDTH_160_PLUS_160MHZ} // Wi-Fi 7, 160+160 MHz channel width
+    { "320",             RADIO_CHAN_WIDTH_320MHZ        } // Wi-Fi 7, 320 MHz channel width
 };
 
 void print_channel_width(const char *mode) {
@@ -219,7 +218,6 @@ radio_chanwidth_t str_to_dpp_chan_width(char *str)
         }
     }
     print_channel_width("320");
-    print_channel_width("160+160");
     wifi_util_error_print(WIFI_SM, "%s:%d MJ str:%s \n",__func__, __LINE__, str);   
     return RADIO_CHAN_WIDTH_20MHZ;
 }
