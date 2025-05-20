@@ -34,6 +34,8 @@
 #define RADIO_SCAN_MAX_RESULTS_RETRIES_ON_AND_OFF_SCAN 35 //7 seconds
 #define NEIGHBOR_SCAN_RETRY_INTERVAL 45 //45ms
 #define NEIGHBOR_SCAN_MAX_RETRY 10
+#define NOP_SLEEP_MINUTES 30
+#define NOP_SLEEP_USEC    (NOP_SLEEP_MINUTES * 60 * 1000000)  // 30 min in microseconds
 
 int validate_radio_channel_args(wifi_mon_stats_args_t *args)
 {
@@ -693,22 +695,43 @@ int check_scan_complete_read_results(void *arg)
         }
     } else { //if (args->scan_mode == WIFI_RADIO_SCAN_MODE_OFFCHAN)
         int i;
-        wifi_util_dbg_print(WIFI_MON, "%s:%d  last_scanned_channel %d\n",__func__,__LINE__, mon_data->last_scanned_channel[args->radio_index]);
-        for (i=0;i<args->channel_list.num_channels;i++) {
-            if (mon_data->last_scanned_channel[args->radio_index] == args->channel_list.channels_list[i]) {
+        int radio_index = args->radio_index;
+        int scanned_channel = mon_data->last_scanned_channel[radio_index];
+    
+        // Check channel state directly from mon_data
+        if (mon_data->channel_state[radio_index][scanned_channel] == CHAN_STATE_DFS_NOP_STARTED) {
+            wifi_util_dbg_print(WIFI_MON, "%s:%d MJ Channel %d is in NOP_STARTED, delaying scan for 30 minutes\n",
+                                __func__, __LINE__, scanned_channel);
+            usleep(NOP_SLEEP_USEC);  // Delay entire thread for 30 minutes
+            wifi_util_dbg_print(WIFI_MON, "%s:%d MJ Resuming scan after NOP delay\n", __func__, __LINE__);
+        }
+    
+        wifi_util_dbg_print(WIFI_MON, "%s:%d  MJ last_scanned_channel %d\n", __func__, __LINE__, scanned_channel);
+    
+        for (i = 0; i < args->channel_list.num_channels; i++) {
+            if (scanned_channel == args->channel_list.channels_list[i]) {
                 last_scanned_channel_index = i;
-                wifi_util_dbg_print(WIFI_MON, "%s:%d  last_scanned_channel_index %d channel : %d\n",__func__,__LINE__, last_scanned_channel_index, mon_data->last_scanned_channel[args->radio_index]);
+                wifi_util_dbg_print(WIFI_MON, "%s:%d  MJ last_scanned_channel_index %d channel : %d\n",
+                                    __func__, __LINE__, last_scanned_channel_index, scanned_channel);
                 break;
             }
         }
-        temp_neigh_stats = neighscan_stats_data->pResult_offchannel[args->radio_index][last_scanned_channel_index];
-        neighscan_stats_data->pResult_offchannel[args->radio_index][last_scanned_channel_index] = neigh_stats;
-        neighscan_stats_data->resultCountPerRadio_offchannel[args->radio_index][last_scanned_channel_index] = ap_count;
-        clock_gettime(CLOCK_MONOTONIC, &(neighscan_stats_data->last_update_time_offchannel[args->radio_index][last_scanned_channel_index]));
-        neighscan_stats_data->channel[args->radio_index][last_scanned_channel_index] = mon_data->last_scanned_channel[args->radio_index];
-        wifi_util_dbg_print(WIFI_MON, "%s:%d  neighscan_stats_data->channel[%d][%d] %d\n",__func__,__LINE__, args->radio_index, last_scanned_channel_index, neighscan_stats_data->channel[args->radio_index][last_scanned_channel_index]);
-        wifi_util_dbg_print(WIFI_MON, "%s:%d  mon_data->last_scanned_channel[%d] %d\n",__func__,__LINE__, args->radio_index, mon_data->last_scanned_channel[args->radio_index]);
-        wifi_util_dbg_print(WIFI_MON, "%s:%d  neighscan_stats_data->resultCountPerRadio_offchannel[%d][%d] %d\n",__func__,__LINE__, args->radio_index, last_scanned_channel_index, neighscan_stats_data->resultCountPerRadio_offchannel[args->radio_index][last_scanned_channel_index]);
+    
+        temp_neigh_stats = neighscan_stats_data->pResult_offchannel[radio_index][last_scanned_channel_index];
+        neighscan_stats_data->pResult_offchannel[radio_index][last_scanned_channel_index] = neigh_stats;
+        neighscan_stats_data->resultCountPerRadio_offchannel[radio_index][last_scanned_channel_index] = ap_count;
+        clock_gettime(CLOCK_MONOTONIC, &(neighscan_stats_data->last_update_time_offchannel[radio_index][last_scanned_channel_index]));
+        neighscan_stats_data->channel[radio_index][last_scanned_channel_index] = scanned_channel;
+    
+        wifi_util_dbg_print(WIFI_MON, "%s:%d  MJ neighscan_stats_data->channel[%d][%d] %d\n",
+                            __func__, __LINE__, radio_index, last_scanned_channel_index,
+                            neighscan_stats_data->channel[radio_index][last_scanned_channel_index]);
+        wifi_util_dbg_print(WIFI_MON, "%s:%d  MJ mon_data->last_scanned_channel[%d] %d\n",
+                            __func__, __LINE__, radio_index, scanned_channel);
+        wifi_util_dbg_print(WIFI_MON, "%s:%d  MJ neighscan_stats_data->resultCountPerRadio_offchannel[%d][%d] %d\n",
+                            __func__, __LINE__, radio_index, last_scanned_channel_index,
+                            neighscan_stats_data->resultCountPerRadio_offchannel[radio_index][last_scanned_channel_index]);
+    
         if (temp_neigh_stats != NULL) {
             free(temp_neigh_stats);
             temp_neigh_stats = NULL;
