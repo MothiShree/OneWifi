@@ -697,9 +697,9 @@ int check_scan_complete_read_results(void *arg)
         int i;
         int radio_index = args->radio_index;
         int scanned_channel = mon_data->last_scanned_channel[radio_index];
-    
-        // Check channel state directly from mon_data
-        if (mon_data->channel_state[radio_index][scanned_channel] == CHAN_STATE_DFS_NOP_STARTED) {
+        wifi_channel_change_event_t *ch = (wifi_channel_change_event_t *)arg;
+        wifi_channelState_t chan_state;
+        if ( ch->sub_event ==  WIFI_EVENT_RADAR_DETECTED && chan_state == CHAN_STATE_DFS_NOP_START) {
             wifi_util_dbg_print(WIFI_MON, "%s:%d MJ Channel %d is in NOP_STARTED, delaying scan for 30 minutes\n",
                                 __func__, __LINE__, scanned_channel);
             usleep(NOP_SLEEP_USEC);  // Delay entire thread for 30 minutes
