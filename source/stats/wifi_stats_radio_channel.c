@@ -892,7 +892,13 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
                 }
             }
             num_channels = 1;
-            mon_data->last_scanned_channel[args->radio_index] = channels[0];
+            wifi_util_error_print(WIFI_MON, "%s:%d MJ new_num_channel:%d\n", __func__, __LINE__, new_num_channels);
+            if(oper->channel_map[new_num_channels].ch_state == CHAN_STATE_DFS_NOP_START){
+                wifi_util_error_print(WIFI_MON, "%s:%d MJ skip channel having nop\n", __func__, __LINE__);
+            }else{
+                wifi_util_error_print(WIFI_MON, "%s:%d MJ channels having doesn'thave nop\n", __func__, __LINE__);
+                mon_data->last_scanned_channel[args->radio_index] = channels[0];
+            }
         }
 
     if (num_channels == 0) {
