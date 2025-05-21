@@ -779,7 +779,8 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
     int new_num_channels = 0;
     int updated_channels[MAX_CHANNELS] = {0};
     wifi_mon_stats_args_t *args = NULL;
-
+    wifi_radio_operationParam_t *oper;
+    
     if (c_elem == NULL) {
         wifi_util_error_print(WIFI_MON, "%s:%d input arguments are NULL args : %p\n", __func__,
             __LINE__, args);
