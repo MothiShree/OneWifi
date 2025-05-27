@@ -776,10 +776,12 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
     int id = 0;
     int on_chan_list[MAX_CHANNELS] = {0};
     int onchan_num_channels = 0;
+    int nop_chan_list[16] = {0};
+    int nop_num_channels = 0;
     int new_num_channels = 0;
     int updated_channels[MAX_CHANNELS] = {0};
     wifi_mon_stats_args_t *args = NULL;
-
+    
     if (c_elem == NULL) {
         wifi_util_error_print(WIFI_MON, "%s:%d input arguments are NULL args : %p\n", __func__,
             __LINE__, args);
@@ -845,6 +847,13 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         }
     } else {
         int i;
+        unsigned int *nop_chan_list_ptr = mon_data->nop_started_channels;
+        for (int i = 0; i < 16; i++) {
+            if (nop_chan_list_ptr[i] == 0)
+                break;
+            nop_chan_list[nop_num_channels++] = nop_chan_list_ptr[i];
+        }
+
         if (args->channel_list.num_channels == 0) {
             return RETURN_ERR;
         }
@@ -868,14 +877,21 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
 	}
         // skip on-channel scan list
         for (int i = 0; i < args->channel_list.num_channels; i++) {
-            int unmatched = 1;
+            int is_on_chan = 0;
+            int is_nop_chan = 0;
             for (int j = 0; j < onchan_num_channels; j++) {
                 if ((int)args->channel_list.channels_list[i] == on_chan_list[j]) {
-                    unmatched = 0;
+                    is_on_chan = 1;
                     break;
                 }
             }
-            if (unmatched) {
+            for (int j = 0; j < nop_num_channels; j++) {
+                if ((int)args->channel_list.channels_list[i] == nop_chan_list[j]) {
+                   is_nop_chan = 1;
+                    break;
+                }
+            }
+            if (!is_on_chan && !is_nop_chan) {
                 updated_channels[new_num_channels++] = args->channel_list.channels_list[i];
             }
         }
@@ -893,6 +909,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
             }
             num_channels = 1;
             mon_data->last_scanned_channel[args->radio_index] = channels[0];
+
         }
 
     if (num_channels == 0) {
