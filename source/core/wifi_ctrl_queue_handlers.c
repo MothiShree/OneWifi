@@ -2717,8 +2717,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
         wifi_channelState_t chan_state = CHAN_STATE_DFS_NOP_FINISHED;
         rdk_wifi_radio_t *l_radio = NULL;
         time_t time_now = time(NULL);
-        l_radio = find_radio_config_by_index(ch_chg->radioIndex);
-        
+        l_radio = find_radio_config_by_index(ch_chg->radioIndex);        
 
         if (l_radio == NULL) {
             wifi_util_error_print(WIFI_CTRL,"%s:%d radio strucutre is not present for radio %d\n",
@@ -2730,7 +2729,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
             wifi_util_error_print(WIFI_CTRL,"%s: Wrong radar in radio_index:%d chan:%u \n",__FUNCTION__, ch_chg->radioIndex, ch_chg->channel);
             return ;
         }
-        
+
         switch (ch_chg->sub_event)
         {
             case WIFI_EVENT_RADAR_DETECTED :
@@ -2822,8 +2821,6 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
             wifi_util_info_print(WIFI_CTRL,"%s:%d DFS Blocked RADAR channel %d is now ready for use\n",
                                  __func__, __LINE__, ch_chg->channel);
         }
-        
-    
         switch (ch_chg->channelWidth)
         {
             case WIFI_CHANNELBANDWIDTH_20MHZ:
@@ -2850,7 +2847,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
             blockStartChannel = 52;
             channelsInBlock -= 4;
         }
-         
+
         for (int i=0; i<radio_capab.channel_list[0].num_channels; i++)
         {
             if ( blockStartChannel == radio_capab.channel_list[0].channels_list[i] )

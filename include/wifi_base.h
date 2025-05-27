@@ -302,13 +302,6 @@ typedef enum {
     whix_app_event_type_max
 } whix_app_event_type_t;
 
-typedef enum {
-    CHAN_STATE_AVAILABLE = 1,
-    CHAN_STATE_DFS_NOP_FINISHED,
-    CHAN_STATE_DFS_NOP_START,
-    CHAN_STATE_DFS_CAC_START,
-    CHAN_STATE_DFS_CAC_COMPLETED
-} wifi_channelState_t;
 typedef struct {
     unsigned int ap_index;
     mac_addr_t dest_addr;
@@ -337,14 +330,13 @@ typedef struct {
     time_t response_time;
 } __attribute__((packed)) wifi_provider_response_t;
 
-
 typedef struct {
     wifi_app_inst_t     inst;
     wifi_mon_stats_type_t  data_type;
     unsigned long       interval_ms;
     bool                task_priority; //if TRUE its high priority
     bool                start_immediately;
-    unsigned int        delay_provider_sec
+    unsigned int        delay_provider_sec;
     wifi_mon_stats_request_state_t    req_state;
     wifi_mon_stats_args_t     args;
     wifi_channelBandwidth_t channelWidth;
@@ -396,9 +388,6 @@ typedef struct {
         frame_data_t msg;
         ocs_params_t        ocs_params;
         collect_stats_t     collect_stats;
-        wifi_channelBandwidth_t channelWidth;
-        wifi_freq_bands_t   band;
-        unsigned int nop_up;
     } u;
 } wifi_monitor_data_t;
 
