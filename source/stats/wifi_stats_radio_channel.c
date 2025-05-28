@@ -847,6 +847,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         }
     } else {
         int i;
+        
         for (int i = 0; i < 16; i++) {
             if (mon_data->nop_started_channels[i] == 0)
                 break;
