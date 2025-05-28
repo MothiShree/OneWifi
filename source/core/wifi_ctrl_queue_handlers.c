@@ -2739,8 +2739,8 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                     break;
                 }
                 unsigned int channel_index = 0;
-             data->u.mon_stats_config.nop_up_channel = radio_param->channel; 
-             data->u.mon_stats_config.channelWidth = radio_param->channelWidth;
+             data->u.mon_stats_config.nop_up_channel = radio_params->channel; 
+             data->u.mon_stats_config.channelWidth = radio_params->channelWidth;
              data->u.mon_stats_config.band = radio_params->band;
             push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
 
@@ -3552,9 +3552,7 @@ void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len
     case wifi_event_webconfig_set_data_tunnel:
         memcpy((unsigned char *)&data.u.decoded.hal_cap, (unsigned char *)&mgr->hal_cap,
             sizeof(wifi_hal_capability_t));
-        apps_mgr_analytics_event(&ctrl->apps_mgr, wifi_event_type_webconfig, subtype, NULL);
         webconfig_decode(config, &data, raw);
-        apps_mgr_analytics_event(&ctrl->apps_mgr, wifi_event_type_webconfig, subtype, NULL);
         webconfig_data_free(&data);
         break;
 
