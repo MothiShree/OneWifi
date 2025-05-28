@@ -847,11 +847,10 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         }
     } else {
         int i;
-        unsigned int *nop_chan_list_ptr = mon_data->nop_started_channels;
         for (int i = 0; i < 16; i++) {
-            if (nop_chan_list_ptr[i] == 0)
+            if (mon_data->nop_started_channels[i] == 0)
                 break;
-            nop_chan_list[nop_num_channels++] = nop_chan_list_ptr[i];
+            nop_num_channels++;
         }
 
         if (args->channel_list.num_channels == 0) {
