@@ -1358,10 +1358,10 @@ int get_neighbor_scan_cfg(int radio_index,
 }
 
 unsigned int* get_nop_started_channels(wifi_mon_stats_config_t *data) {
-    wifi_freq_bands_t band = data->u.mon_stats_config.band;
-    wifi_channelBandwidth_t bandwidth = data->u.mon_stats_config.channelWidth;
-    int primary_channel = data->u.mon_stats_config.nop_up_channel;
-    unsigned int channel_list[16];
+    wifi_freq_bands_t band = data->band;
+    wifi_channelBandwidth_t bandwidth = data->channelWidth;
+    int primary_channel = data->nop_up_channel;
+    int channel_list[16];
     int channels_num = 0;
 
     if (!data) {
