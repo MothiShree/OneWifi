@@ -776,8 +776,6 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
     int id = 0;
     int on_chan_list[MAX_CHANNELS] = {0};
     int onchan_num_channels = 0;
-    int nop_chan_list[16] = {0};
-    int nop_num_channels = 0;
     int new_num_channels = 0;
     int updated_channels[MAX_CHANNELS] = {0};
     wifi_mon_stats_args_t *args = NULL;
@@ -807,16 +805,10 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
             __func__, __LINE__, args->radio_index);
         return RETURN_ERR;
     }
-    for (int i = 0; i < 16; i++) {
-        if (mon_data->nop_started_channels[i] == NULL){
-            wifi_util_dbg_print(WIFI_MON, "%s:%d MJ NOP channel processing stopped at index %d\n", __func__, __LINE__, i);
-            break;
-        }
-        nop_chan_list[nop_num_channels++] = *mon_data->nop_started_channels[i];
+    for (int j = 0; j < mon_data->nop_channels_num; j++) {
+        wifi_util_dbg_print(WIFI_MON, "%s:%d Channel %d: %u\n", __func__, __LINE__, j, mon_data->nop_started_channels[j]);
     }
-    for (int j = 0; j < nop_num_channels; j++) {
-        wifi_util_dbg_print(WIFI_MON, "%s:%d Channel %d: %u\n", __func__, __LINE__, j, nop_chan_list[j]);
-    }
+
     if (args->scan_mode == WIFI_RADIO_SCAN_MODE_ONCHAN) {
         if (get_on_channel_scan_list(radioOperation->band, radioOperation->channelWidth,
                 radioOperation->channel, channels, &num_channels) != 0) {
@@ -856,14 +848,6 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         }
     } else {
         int i;
-        /*wifi_util_dbg_print(WIFI_MON, "%s:%d  MJ scan mode %d\n", __func__, __LINE__, args->scan_mode);
-        for (int i = 0; i < 16; i++) {
-            if (mon_data->nop_started_channels[i] == NULL){
-                wifi_util_dbg_print(WIFI_MON, "%s:%d MJ NOP channel processing stopped at index %d\n", __func__, __LINE__, i);
-                break;
-            }
-            nop_chan_list[nop_num_channels++] = *mon_data->nop_started_channels[i];
-        }*/
         wifi_util_dbg_print(WIFI_MON, "%s:%d MJ Total NOP started channels: %d\n", __func__, __LINE__, nop_num_channels);
         if (args->channel_list.num_channels == 0) {
             wifi_util_error_print(WIFI_MON, "%s:%d MJ Channel list is empty\n", __func__, __LINE__);
@@ -899,13 +883,14 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
                     break;
                 }
             }
-            for (int j = 0; j < nop_num_channels; j++) {
-                if ((int)args->channel_list.channels_list[i] == nop_chan_list[j]) {
+            for (int j = 0; j < mon_data->nop_channels_num; j++) {
+                if ((int)args->channel_list.channels_list[i] == mon_data->nop_started_channels[j]) {
                    is_nop_chan = 1;
-                   wifi_util_dbg_print(WIFI_MON, "%s:%d Channel %d\n", __func__, __LINE__, nop_chan_list[j]);
+                   wifi_util_dbg_print(WIFI_MON, "%s:%d Channel %d\n", __func__, __LINE__, mon_data->nop_started_channels[j]);
                    break;
                 }
             }
+            
             if (!is_on_chan && !is_nop_chan) {
                 updated_channels[new_num_channels++] = args->channel_list.channels_list[i];
                 wifi_util_dbg_print(WIFI_MON, "%s:%d Channel %d added to updated list\n", __func__, __LINE__, args->channel_list.channels_list[i]);
@@ -918,7 +903,6 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
 }
 memcpy(channels, updated_channels, sizeof(int) * new_num_channels);
 num_channels = new_num_channels;
-channels[0] = updated_channels[0];
         for (i = 0; i < new_num_channels; i++) {
             if (mon_data->last_scanned_channel[args->radio_index] ==
                 updated_channels[i]) {

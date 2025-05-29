@@ -1357,56 +1357,58 @@ int get_neighbor_scan_cfg(int radio_index,
     return 0;
 }
 
-unsigned int* get_nop_started_channels(wifi_mon_stats_config_t *data) {
-    wifi_freq_bands_t band = data->band;
-    wifi_channelBandwidth_t bandwidth = data->channelWidth;
-    int primary_channel = data->nop_up_channel;
-    int channel_list[16];
-    int channels_num = 0;
+    unsigned int get_nop_started_channels(wifi_mon_stats_config_t *data) {
+        wifi_freq_bands_t band = data->band;
+        wifi_channelBandwidth_t bandwidth = data->channelWidth;
+        int primary_channel = data->nop_up_channel;
+        int channel_list[16];
+        int channels_num = 0;
 
-    if (!data) {
-        wifi_util_error_print(WIFI_CTRL, "%s:%d: Invalid input data\n", __func__, __LINE__);
-        return NULL;
-    }   
-    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Band: %d\n", __func__, __LINE__, band);
-wifi_util_dbg_print(WIFI_CTRL, "%s:%d Bandwidth: %d\n", __func__, __LINE__, bandwidth);
-wifi_util_dbg_print(WIFI_CTRL, "%s:%d Primary Channel: %d\n", __func__, __LINE__, primary_channel);
-wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel List Address: %p\n", __func__, __LINE__, channel_list);
-wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channels Num Address: %p\n", __func__, __LINE__, &channels_num);
-    int ret = get_on_channel_scan_list(band, bandwidth, primary_channel, channel_list, &channels_num);
-    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Return Value from get_on_channel_scan_list: %d\n", __func__, __LINE__, ret);
-    if (ret != 0) {
-        wifi_util_error_print(WIFI_CTRL, "%s:%d: Channel scan list not found\n", __func__, __LINE__);
-        return NULL;
-    }
-
-    pthread_mutex_lock(&g_monitor_module.data_lock);
-    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Acquired data lock\n", __func__, __LINE__);
-    for (int i = 0; i < 16; i++) {
-        if (g_monitor_module.nop_started_channels[i] == NULL) {
-            wifi_util_dbg_print(WIFI_CTRL, "%s:%d Allocating memory for NOP started channels at index %d\n", __func__, __LINE__, i);        
-            g_monitor_module.nop_started_channels[i] = (unsigned int *)malloc(channels_num * sizeof(unsigned int));
-            if (g_monitor_module.nop_started_channels[i] == NULL) {
-                wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed for index %d\n", __func__, __LINE__, i);
-                pthread_mutex_unlock(&g_monitor_module.data_lock);
-                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock due to memory allocation failure\n", __func__, __LINE__);
-                return NULL;
-            }
-            wifi_util_dbg_print(WIFI_CTRL, "%s:%d Memory allocated successfully for index %d\n", __func__, __LINE__, i);
-            memset(g_monitor_module.nop_started_channels[i], 0, channels_num * sizeof(unsigned int));
-            wifi_util_dbg_print(WIFI_CTRL, "%s:%d Initialized memory for NOP started channels at index %d\n", __func__, __LINE__, i);
-            memcpy(g_monitor_module.nop_started_channels[i], channel_list, channels_num * sizeof(unsigned int));
-            wifi_util_dbg_print(WIFI_CTRL, "%s:%d Copied channel list to NOP started channels at index %d\n", __func__, __LINE__, i);
-            for (int j = 0; j < channels_num; j++) {
-                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel %d: %u\n", __func__, __LINE__, j, channel_list[j]);
-            }
+        if (!data) {
+            wifi_util_error_print(WIFI_CTRL, "%s:%d: Invalid input data\n", __func__, __LINE__);
+            return NULL;
+        }   
+        wifi_util_dbg_print(WIFI_CTRL, "%s:%d Band: %d\n", __func__, __LINE__, band);
+    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Bandwidth: %d\n", __func__, __LINE__, bandwidth);
+    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Primary Channel: %d\n", __func__, __LINE__, primary_channel);
+    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel List Address: %p\n", __func__, __LINE__, channel_list);
+    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channels Num Address: %p\n", __func__, __LINE__, &channels_num);
+        int ret = get_on_channel_scan_list(band, bandwidth, primary_channel, channel_list, &channels_num);
+        wifi_util_dbg_print(WIFI_CTRL, "%s:%d Return Value from get_on_channel_scan_list: %d\n", __func__, __LINE__, ret);
+        if (ret != 0) {
+            wifi_util_error_print(WIFI_CTRL, "%s:%d: Channel scan list not found\n", __func__, __LINE__);
+            return NULL;
         }
-    }
 
-    pthread_mutex_unlock(&g_monitor_module.data_lock);
-    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock\n", __func__, __LINE__);
-    return RETURN_OK;  
+        pthread_mutex_lock(&g_monitor_module.data_lock);
+        wifi_util_dbg_print(WIFI_CTRL, "%s:%d Acquired data lock\n", __func__, __LINE__);
+        g_monitor_module.nop_channels_num = channels_num;
+        wifi_util_dbg_print(WIFI_CTRL, "%s:%d Set NOP channels num to %d\n", __func__, __LINE__, g_monitor_module.nop_channels_num);
+for(int i = 0; i < channels_num; i++) {
+            if (g_monitor_module.nop_started_channels[i] == NULL) {
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Allocating memory for NOP started channels at index %d\n", __func__, __LINE__, i);        
+                g_monitor_module.nop_started_channels[i] = (unsigned int *)malloc(channels_num * sizeof(unsigned int));
+                if (g_monitor_module.nop_started_channels[i] == NULL) {
+                    wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed for index %d\n", __func__, __LINE__, i);
+                    pthread_mutex_unlock(&g_monitor_module.data_lock);
+                    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock due to memory allocation failure\n", __func__, __LINE__);
+                    return NULL;
+                }
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Memory allocated successfully for index %d\n", __func__, __LINE__, i);
+                memset(g_monitor_module.nop_started_channels[i], 0, channels_num * sizeof(unsigned int));
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Initialized memory for NOP started channels at index %d\n", __func__, __LINE__, i);
+                memcpy(g_monitor_module.nop_started_channels[i], channel_list, channels_num * sizeof(unsigned int));
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Copied channel list to NOP started channels at index %d\n", __func__, __LINE__, i);
+                for (int j = 0; j < channels_num; j++) {
+                    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel %d: %u\n", __func__, __LINE__, j, channel_list[j]);
+                }
+            }
 }
+
+        pthread_mutex_unlock(&g_monitor_module.data_lock);
+        wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock\n", __func__, __LINE__);
+        return RETURN_OK;  
+    }
 
 
 void clear_sta_counters(unsigned int vap_index)
