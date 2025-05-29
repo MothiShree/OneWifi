@@ -849,11 +849,11 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         int i;
         wifi_util_dbg_print(WIFI_MON, "%s:%d  MJ scan mode %d\n", __func__, __LINE__, args->scan_mode);
         for (int i = 0; i < 16; i++) {
-            if (mon_data->nop_started_channels[i] == 0){
+            if (mon_data->nop_started_channels[i] == NULL){
                 wifi_util_dbg_print(WIFI_MON, "%s:%d MJ NOP channel processing stopped at index %d\n", __func__, __LINE__, i);
                 break;
             }
-            nop_chan_list[nop_num_channels++] = mon_data->nop_started_channels[i];
+            nop_chan_list[nop_num_channels++] = *mon_data->nop_started_channels[i];
         }
         wifi_util_dbg_print(WIFI_MON, "%s:%d MJ Total NOP started channels: %d\n", __func__, __LINE__, nop_num_channels);
         if (args->channel_list.num_channels == 0) {
