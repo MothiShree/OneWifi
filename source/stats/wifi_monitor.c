@@ -1374,6 +1374,7 @@ wifi_util_dbg_print(WIFI_CTRL, "%s:%d Primary Channel: %d\n", __func__, __LINE__
 wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel List Address: %p\n", __func__, __LINE__, channel_list);
 wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channels Num Address: %p\n", __func__, __LINE__, &channels_num);
     int ret = get_on_channel_scan_list(band, bandwidth, primary_channel, channel_list, &channels_num);
+    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Return Value from get_on_channel_scan_list: %d\n", __func__, __LINE__, ret);
     if (ret != 0) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d: Channel scan list not found\n", __func__, __LINE__);
         return NULL;
@@ -1396,6 +1397,9 @@ wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channels Num Address: %p\n", __func__, __L
             wifi_util_dbg_print(WIFI_CTRL, "%s:%d Initialized memory for NOP started channels at index %d\n", __func__, __LINE__, i);
             memcpy(g_monitor_module.nop_started_channels[i], channel_list, channels_num * sizeof(unsigned int));
             wifi_util_dbg_print(WIFI_CTRL, "%s:%d Copied channel list to NOP started channels at index %d\n", __func__, __LINE__, i);
+            for (int j = 0; j < channels_num; j++) {
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel %d: %u\n", __func__, __LINE__, j, channel_list[j]);
+            }
         }
     }
 
