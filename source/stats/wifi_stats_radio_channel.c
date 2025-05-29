@@ -848,7 +848,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         }
     } else {
         int i;
-        wifi_util_dbg_print(WIFI_MON, "%s:%d MJ Total NOP started channels: %d\n", __func__, __LINE__, nop_num_channels);
+        wifi_util_dbg_print(WIFI_MON, "%s:%d MJ Off channels\n", __func__, __LINE__);
         if (args->channel_list.num_channels == 0) {
             wifi_util_error_print(WIFI_MON, "%s:%d MJ Channel list is empty\n", __func__, __LINE__);
             return RETURN_ERR;
