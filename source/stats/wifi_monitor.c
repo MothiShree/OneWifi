@@ -1377,6 +1377,8 @@ int get_neighbor_scan_cfg(int radio_index,
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Primary Channel: %d\n", __func__, __LINE__, primary_channel);
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel List Address: %p\n", __func__, __LINE__, channel_list);
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channels Num Address: %p\n", __func__, __LINE__, &channels_num);
+    wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Status: %d\n", __func__, __LINE__, data->nop_up_status);
+    if(data->nop_up_status == TRUE){
         int ret = get_on_channel_scan_list(band, bandwidth, primary_channel, channel_list, &channels_num);
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Return Value from get_on_channel_scan_list: %d\n", __func__, __LINE__, ret);
         if (ret != 0) {
@@ -1411,6 +1413,7 @@ for(unsigned int i = 0; i < g_monitor_module.nop_channels_num; i++) {
 
         pthread_mutex_unlock(&g_monitor_module.data_lock);
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock\n", __func__, __LINE__);
+}
         return RETURN_OK;  
     }
 
