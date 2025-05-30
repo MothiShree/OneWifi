@@ -1364,7 +1364,7 @@ int get_neighbor_scan_cfg(int radio_index,
 
         if (!data) {
             wifi_util_error_print(WIFI_CTRL, "%s:%d: Invalid input data\n", __func__, __LINE__);
-            return NULL;
+            return RETURN_ERR;
         }   
 
         wifi_freq_bands_t band = data->band;
@@ -1381,14 +1381,14 @@ int get_neighbor_scan_cfg(int radio_index,
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Return Value from get_on_channel_scan_list: %d\n", __func__, __LINE__, ret);
         if (ret != 0) {
             wifi_util_error_print(WIFI_CTRL, "%s:%d: Channel scan list not found\n", __func__, __LINE__);
-            return NULL;
+            return RETURN_ERR;
         }
 
         pthread_mutex_lock(&g_monitor_module.data_lock);
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Acquired data lock\n", __func__, __LINE__);
         g_monitor_module.nop_channels_num = channels_num;
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Set NOP channels num to %d\n", __func__, __LINE__, g_monitor_module.nop_channels_num);
-for(int i = 0; i < g_monitor_module.nop_channels_num; i++) {
+for(unsigned int i = 0; i < g_monitor_module.nop_channels_num; i++) {
             if (g_monitor_module.nop_started_channels[i] == NULL) {
                 wifi_util_dbg_print(WIFI_CTRL, "%s:%d Allocating memory for NOP started channels at index %d\n", __func__, __LINE__, i);        
                 g_monitor_module.nop_started_channels[i] = (unsigned int *)malloc(channels_num * sizeof(unsigned int));
@@ -1396,7 +1396,7 @@ for(int i = 0; i < g_monitor_module.nop_channels_num; i++) {
                     wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed for index %d\n", __func__, __LINE__, i);
                     pthread_mutex_unlock(&g_monitor_module.data_lock);
                     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock due to memory allocation failure\n", __func__, __LINE__);
-                    return NULL;
+                    return RETURN_ERR;
                 }
                 wifi_util_dbg_print(WIFI_CTRL, "%s:%d Memory allocated successfully for index %d\n", __func__, __LINE__, i);
                 memset(g_monitor_module.nop_started_channels[i], 0, channels_num * sizeof(unsigned int));
