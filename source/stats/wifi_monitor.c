@@ -1390,7 +1390,7 @@ int get_neighbor_scan_cfg(int radio_index,
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Acquired data lock\n", __func__, __LINE__);
         g_monitor_module.nop_channels_num = channels_num;
                
-                g_monitor_module.nop_started_channels[i] = (unsigned int *)malloc(channels_num * sizeof(unsigned int));
+                g_monitor_module.nop_started_channels = (unsigned int *)malloc(channels_num * sizeof(unsigned int));
                 if (g_monitor_module.nop_started_channels == NULL) {
                     wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed for index %d\n", __func__, __LINE__, i);
                     pthread_mutex_unlock(&g_monitor_module.data_lock);
