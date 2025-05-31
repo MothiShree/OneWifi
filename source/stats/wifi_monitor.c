@@ -1389,21 +1389,9 @@ int get_neighbor_scan_cfg(int radio_index,
         pthread_mutex_lock(&g_monitor_module.data_lock);
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Acquired data lock\n", __func__, __LINE__);
         g_monitor_module.nop_channels_num = channels_num;
-               
-                g_monitor_module.nop_started_channels = (unsigned int *)malloc(channels_num * sizeof(unsigned int));
-                if (g_monitor_module.nop_started_channels == NULL) {
-                    wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed for index %d\n", __func__, __LINE__, i);
-                    pthread_mutex_unlock(&g_monitor_module.data_lock);
-                    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock due to memory allocation failure\n", __func__, __LINE__);
-                    return RETURN_ERR;
-                }
-                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Memory allocated successfully for index %d\n", __func__, __LINE__, i);
-                memset(g_monitor_module.nop_started_channels, 0, channels_num * sizeof(unsigned int));
-                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Initialized memory for NOP started channels at index %d\n", __func__, __LINE__, i);
-                memcpy(g_monitor_module.nop_started_channels, channel_list, channels_num * sizeof(unsigned int));
-                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Copied channel list to NOP started channels at index %d\n", __func__, __LINE__, i);
+        memcpy(g_monitor_module.nop_started_channels, channel_list, channels_num * sizeof(unsigned int));
                 for (int j = 0; j < channels_num; j++) {
-                    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel %d: %u\n", __func__, __LINE__, j, g_monitor_module.nop_started_channels[i]);
+                    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel %d: %u\n", __func__, __LINE__, j, g_monitor_module.nop_started_channels[j]);
                 }
             }
 
