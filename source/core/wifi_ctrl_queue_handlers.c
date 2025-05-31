@@ -2746,7 +2746,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
              wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Channel: %u\n", __func__, __LINE__, data->u.mon_stats_config.nop_up_channel);
              wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel Width: %d\n", __func__, __LINE__, data->u.mon_stats_config.channelWidth);
              wifi_util_dbg_print(WIFI_CTRL, "%s:%d Band: %d\n", __func__, __LINE__, data->u.mon_stats_config.band);
-             wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Status:%d",data->u.mon_stats_config.nop_up_status);
+             wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Status:%d\n", data->u.mon_stats_config.nop_up_status);
             push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
 
                 l_radio->radarInfo.last_channel = ch_chg->channel;
@@ -2778,11 +2778,14 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 break;
             case WIFI_EVENT_RADAR_CAC_FINISHED :
                 chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
+                data->u.mon_stats_config.nop_up_status = FALSE;
                 break;
             case WIFI_EVENT_RADAR_CAC_ABORTED :
                 chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
+                data->u.mon_stats_config.nop_up_status = FALSE;
                 break;
             case WIFI_EVENT_RADAR_NOP_FINISHED :
+                data->u.mon_stats_config.nop_up_status = FALSE;
                 if( (unsigned int)l_radio->radarInfo.last_channel == ch_chg->channel && (time_now - l_radio->radarInfo.timestamp >= 1800)) {
                     l_radio->radarInfo.last_channel = 0;
                     l_radio->radarInfo.num_detected = 0;
@@ -2813,9 +2816,11 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 break;
             case WIFI_EVENT_RADAR_PRE_CAC_EXPIRED :
                 chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
+                data->u.mon_stats_config.nop_up_status = FALSE;
                 break;
             case WIFI_EVENT_RADAR_CAC_STARTED :
                 chan_state = CHAN_STATE_DFS_CAC_START;
+                data->u.mon_stats_config.nop_up_status = FALSE;
                 break;
         }
 
