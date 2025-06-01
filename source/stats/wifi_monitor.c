@@ -1378,6 +1378,7 @@ int get_neighbor_scan_cfg(int radio_index,
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel List Address: %p\n", __func__, __LINE__, channel_list);
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channels Num Address: %p\n", __func__, __LINE__, &channels_num);
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Status: %d\n", __func__, __LINE__, data->nop_up_status);
+    g_monitor_module.nop_start_status = data->nop_up_status;
     if(data->nop_up_status == TRUE){
         int ret = get_on_channel_scan_list(band, bandwidth, primary_channel, channel_list, &channels_num);
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Return Value from get_on_channel_scan_list: %d\n", __func__, __LINE__, ret);
