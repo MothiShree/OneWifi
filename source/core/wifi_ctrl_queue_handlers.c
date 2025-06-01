@@ -2706,131 +2706,131 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
         radio_params->operatingClass = ch_chg->op_class;
         pthread_mutex_unlock(&g_wifidb->data_cache_lock);
     }
-    else if ( (ch_chg->event == WIFI_EVENT_DFS_RADAR_DETECTED) && (radio_params->band == WIFI_FREQUENCY_5_BAND || radio_params->band == WIFI_FREQUENCY_5L_BAND || radio_params->band == WIFI_FREQUENCY_5H_BAND) ) {
-        UINT channelsInBlock = 1;
-        UINT inputChannelBlock = 0;
-        UINT firstChannelInBand = 36;
-        //UINT lastChannelInRadar = 144;
-        int blockStartChannel = 0;
-        //UINT blockEndChannel = 0;
-        UINT channelGap = 4;
-        wifi_channelState_t chan_state = CHAN_STATE_DFS_NOP_FINISHED;
-        rdk_wifi_radio_t *l_radio = NULL;
-        time_t time_now = time(NULL);
-        l_radio = find_radio_config_by_index(ch_chg->radioIndex);        
+        else if ( (ch_chg->event == WIFI_EVENT_DFS_RADAR_DETECTED) && (radio_params->band == WIFI_FREQUENCY_5_BAND || radio_params->band == WIFI_FREQUENCY_5L_BAND || radio_params->band == WIFI_FREQUENCY_5H_BAND) ) {
+            UINT channelsInBlock = 1;
+            UINT inputChannelBlock = 0;
+            UINT firstChannelInBand = 36;
+            //UINT lastChannelInRadar = 144;
+            int blockStartChannel = 0;
+            //UINT blockEndChannel = 0;
+            UINT channelGap = 4;
+            wifi_channelState_t chan_state = CHAN_STATE_DFS_NOP_FINISHED;
+            rdk_wifi_radio_t *l_radio = NULL;
+            time_t time_now = time(NULL);
+            l_radio = find_radio_config_by_index(ch_chg->radioIndex);        
 
-        if (l_radio == NULL) {
-            wifi_util_error_print(WIFI_CTRL,"%s:%d radio strucutre is not present for radio %d\n",
-                                __FUNCTION__, __LINE__,  ch_chg->radioIndex);
-            return;
-        }
+            if (l_radio == NULL) {
+                wifi_util_error_print(WIFI_CTRL,"%s:%d radio strucutre is not present for radio %d\n",
+                                    __FUNCTION__, __LINE__,  ch_chg->radioIndex);
+                return;
+            }
 
-        if( ((ch_chg->channel >= 36 && ch_chg->channel < 52) && (ch_chg->channelWidth != WIFI_CHANNELBANDWIDTH_160MHZ )) || (ch_chg->channel > 144 && ch_chg->channel <= 165) ) {
-            wifi_util_error_print(WIFI_CTRL,"%s: Wrong radar in radio_index:%d chan:%u \n",__FUNCTION__, ch_chg->radioIndex, ch_chg->channel);
-            return ;
-        }
+            if( ((ch_chg->channel >= 36 && ch_chg->channel < 52) && (ch_chg->channelWidth != WIFI_CHANNELBANDWIDTH_160MHZ )) || (ch_chg->channel > 144 && ch_chg->channel <= 165) ) {
+                wifi_util_error_print(WIFI_CTRL,"%s: Wrong radar in radio_index:%d chan:%u \n",__FUNCTION__, ch_chg->radioIndex, ch_chg->channel);
+                return ;
+            }
 
-        switch (ch_chg->sub_event)
-        {
-            case WIFI_EVENT_RADAR_DETECTED :
-                chan_state = CHAN_STATE_DFS_NOP_START;
-                if((l_radio->radarInfo.timestamp != 0) && ((time_now - l_radio->radarInfo.timestamp) <= 2) && ((unsigned int)l_radio->radarInfo.last_channel == ch_chg->channel) ) {
-                    /* Ignore the duplicate radar events for the same channel triggered within 2 seconds */
-                    break;
-                }
-                unsigned int channel_index = 0;
-             data->u.mon_stats_config.nop_up_channel = radio_params->channel; 
-             data->u.mon_stats_config.channelWidth = radio_params->channelWidth;
-             data->u.mon_stats_config.band = radio_params->band;
-             data->u.mon_stats_config.nop_up_status = TRUE;
-             wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Channel: %u\n", __func__, __LINE__, data->u.mon_stats_config.nop_up_channel);
-             wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel Width: %d\n", __func__, __LINE__, data->u.mon_stats_config.channelWidth);
-             wifi_util_dbg_print(WIFI_CTRL, "%s:%d Band: %d\n", __func__, __LINE__, data->u.mon_stats_config.band);
-             wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Status:%d\n", __func__, __LINE__, data->u.mon_stats_config.nop_up_status);
-            push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
-
-                l_radio->radarInfo.last_channel = ch_chg->channel;
-                l_radio->radarInfo.num_detected++;
-                l_radio->radarInfo.timestamp = (dfs_timer_secs == 0) ? (long int) time_now : (long int) (time_now - (radio_params->DFSTimer - dfs_timer_secs));
-
-                if(!is_nop_start_reboot) {
-                    pthread_mutex_lock(&g_wifidb->data_cache_lock);
-                    if( !strcmp(radio_params->radarDetected, " ") ) {
-                        snprintf(radio_params->radarDetected, sizeof(radio_params->radarDetected), "%d,%x,%lld", l_radio->radarInfo.last_channel, ch_chg->channelWidth, l_radio->radarInfo.timestamp);
-                    } else {
-                        snprintf(radio_params->radarDetected + strlen(radio_params->radarDetected), sizeof(radio_params->radarDetected), ";%d,%x,%lld", l_radio->radarInfo.last_channel, ch_chg->channelWidth, l_radio->radarInfo.timestamp);
-                    }
-                    pthread_mutex_unlock(&g_wifidb->data_cache_lock);
-                }
-
-                for(channel_index = 0; channel_index < sizeof(temp_ch_list_5g)/sizeof(int); channel_index++) {
-                    if(temp_ch_list_5g[channel_index] == ch_chg->channel && !is_nop_start_reboot) {
-                        scheduler_add_timer_task(ctrl->sched, FALSE, NULL, dfs_nop_finish_timer, &temp_ch_list_5g[channel_index], radio_params->DFSTimer * (1000 * 60), 1, FALSE);
-                        wifi_util_dbg_print(WIFI_CTRL,"%s: Scheduled nop_finish DFSTimer %d for chan:%d \n",__FUNCTION__, radio_params->DFSTimer, ch_chg->channel);
-                        break;
-                    } else if(temp_ch_list_5g[channel_index] == ch_chg->channel && is_nop_start_reboot) {
-                        scheduler_add_timer_task(ctrl->sched, FALSE, NULL, dfs_nop_finish_timer, &temp_ch_list_5g[channel_index], (dfs_timer_secs * 1000), 1, FALSE);
-                        wifi_util_dbg_print(WIFI_CTRL,"%s: Scheduled nop_finish dfs_timer_secs %d for chan:%d \n",__FUNCTION__, dfs_timer_secs, ch_chg->channel);
+            switch (ch_chg->sub_event)
+            {
+                case WIFI_EVENT_RADAR_DETECTED :
+                    chan_state = CHAN_STATE_DFS_NOP_START;
+                    if((l_radio->radarInfo.timestamp != 0) && ((time_now - l_radio->radarInfo.timestamp) <= 2) && ((unsigned int)l_radio->radarInfo.last_channel == ch_chg->channel) ) {
+                        /* Ignore the duplicate radar events for the same channel triggered within 2 seconds */
                         break;
                     }
-                }
+                    unsigned int channel_index = 0;
+                data->u.mon_stats_config.nop_up_channel = radio_params->channel; 
+                data->u.mon_stats_config.channelWidth = radio_params->channelWidth;
+                data->u.mon_stats_config.band = radio_params->band;
+                data->u.mon_stats_config.nop_up_status = TRUE;
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Channel: %u\n", __func__, __LINE__, data->u.mon_stats_config.nop_up_channel);
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel Width: %d\n", __func__, __LINE__, data->u.mon_stats_config.channelWidth);
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Band: %d\n", __func__, __LINE__, data->u.mon_stats_config.band);
+                wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Status:%d\n", __func__, __LINE__, data->u.mon_stats_config.nop_up_status);
 
-                break;
-            case WIFI_EVENT_RADAR_CAC_FINISHED :
-                chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
-                data->u.mon_stats_config.nop_up_status = FALSE;
-                break;
-            case WIFI_EVENT_RADAR_CAC_ABORTED :
-                chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
-                data->u.mon_stats_config.nop_up_status = FALSE;
-                break;
-            case WIFI_EVENT_RADAR_NOP_FINISHED :
-                data->u.mon_stats_config.nop_up_status = FALSE;
-                if( (unsigned int)l_radio->radarInfo.last_channel == ch_chg->channel && (time_now - l_radio->radarInfo.timestamp >= 1800)) {
-                    l_radio->radarInfo.last_channel = 0;
-                    l_radio->radarInfo.num_detected = 0;
-                    l_radio->radarInfo.timestamp = 0;
-                } else if (l_radio->radarInfo.num_detected > 1){
-                    l_radio->radarInfo.num_detected--;
-                }
-                if (strcmp(radio_params->radarDetected, " ")) {
-                    char *str_re, *radar_detected_ch_time;
-                    char radarDetected_temp[128];
-                    unsigned int ch_temp;
+                    l_radio->radarInfo.last_channel = ch_chg->channel;
+                    l_radio->radarInfo.num_detected++;
+                    l_radio->radarInfo.timestamp = (dfs_timer_secs == 0) ? (long int) time_now : (long int) (time_now - (radio_params->DFSTimer - dfs_timer_secs));
 
-                    strncpy(radarDetected_temp, radio_params->radarDetected, sizeof(radarDetected_temp));
+                    if(!is_nop_start_reboot) {
+                        pthread_mutex_lock(&g_wifidb->data_cache_lock);
+                        if( !strcmp(radio_params->radarDetected, " ") ) {
+                            snprintf(radio_params->radarDetected, sizeof(radio_params->radarDetected), "%d,%x,%lld", l_radio->radarInfo.last_channel, ch_chg->channelWidth, l_radio->radarInfo.timestamp);
+                        } else {
+                            snprintf(radio_params->radarDetected + strlen(radio_params->radarDetected), sizeof(radio_params->radarDetected), ";%d,%x,%lld", l_radio->radarInfo.last_channel, ch_chg->channelWidth, l_radio->radarInfo.timestamp);
+                        }
+                        pthread_mutex_unlock(&g_wifidb->data_cache_lock);
+                    }
 
-                    radar_detected_ch_time = strtok_r(radarDetected_temp, ";", &str_re);
-                    while(radar_detected_ch_time != NULL) {
-                        ch_temp = atoi(radar_detected_ch_time);
-                        if(ch_temp == ch_chg->channel) {
-                            if(update_db_radar_detected(radar_detected_ch_time) != RETURN_OK) {
-                                wifi_util_error_print(WIFI_CTRL, "%s update_db_radar_detected returned error for channel:%d \n", __FUNCTION__, ch_chg->channel);
-                            }
+                    for(channel_index = 0; channel_index < sizeof(temp_ch_list_5g)/sizeof(int); channel_index++) {
+                        if(temp_ch_list_5g[channel_index] == ch_chg->channel && !is_nop_start_reboot) {
+                            scheduler_add_timer_task(ctrl->sched, FALSE, NULL, dfs_nop_finish_timer, &temp_ch_list_5g[channel_index], radio_params->DFSTimer * (1000 * 60), 1, FALSE);
+                            wifi_util_dbg_print(WIFI_CTRL,"%s: Scheduled nop_finish DFSTimer %d for chan:%d \n",__FUNCTION__, radio_params->DFSTimer, ch_chg->channel);
+                            break;
+                        } else if(temp_ch_list_5g[channel_index] == ch_chg->channel && is_nop_start_reboot) {
+                            scheduler_add_timer_task(ctrl->sched, FALSE, NULL, dfs_nop_finish_timer, &temp_ch_list_5g[channel_index], (dfs_timer_secs * 1000), 1, FALSE);
+                            wifi_util_dbg_print(WIFI_CTRL,"%s: Scheduled nop_finish dfs_timer_secs %d for chan:%d \n",__FUNCTION__, dfs_timer_secs, ch_chg->channel);
                             break;
                         }
-                        radar_detected_ch_time = strtok_r(NULL, ";", &str_re);
                     }
-                }
-                chan_state = CHAN_STATE_DFS_NOP_FINISHED;
-                break;
-            case WIFI_EVENT_RADAR_PRE_CAC_EXPIRED :
-                chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
-                data->u.mon_stats_config.nop_up_status = FALSE;
-                break;
-            case WIFI_EVENT_RADAR_CAC_STARTED :
-                chan_state = CHAN_STATE_DFS_CAC_START;
-                data->u.mon_stats_config.nop_up_status = FALSE;
-                break;
-        }
 
-        if (ch_chg->sub_event == WIFI_EVENT_RADAR_DETECTED) {
-            wifi_util_info_print(WIFI_CTRL,"%s:%d DFS RADAR_DETECTED on ch %d and will not be available for 30 mins\n",
-                                 __func__, __LINE__, ch_chg->channel);
-        } else if (ch_chg->sub_event == WIFI_EVENT_RADAR_NOP_FINISHED) {
-            wifi_util_info_print(WIFI_CTRL,"%s:%d DFS Blocked RADAR channel %d is now ready for use\n",
-                                 __func__, __LINE__, ch_chg->channel);
-        }
+                    break;
+                case WIFI_EVENT_RADAR_CAC_FINISHED :
+                    chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
+                    data->u.mon_stats_config.nop_up_status = FALSE;
+                    break;
+                case WIFI_EVENT_RADAR_CAC_ABORTED :
+                    chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
+                    data->u.mon_stats_config.nop_up_status = FALSE;
+                    break;
+                case WIFI_EVENT_RADAR_NOP_FINISHED :
+                    data->u.mon_stats_config.nop_up_status = FALSE;
+                    if( (unsigned int)l_radio->radarInfo.last_channel == ch_chg->channel && (time_now - l_radio->radarInfo.timestamp >= 1800)) {
+                        l_radio->radarInfo.last_channel = 0;
+                        l_radio->radarInfo.num_detected = 0;
+                        l_radio->radarInfo.timestamp = 0;
+                    } else if (l_radio->radarInfo.num_detected > 1){
+                        l_radio->radarInfo.num_detected--;
+                    }
+                    if (strcmp(radio_params->radarDetected, " ")) {
+                        char *str_re, *radar_detected_ch_time;
+                        char radarDetected_temp[128];
+                        unsigned int ch_temp;
+
+                        strncpy(radarDetected_temp, radio_params->radarDetected, sizeof(radarDetected_temp));
+
+                        radar_detected_ch_time = strtok_r(radarDetected_temp, ";", &str_re);
+                        while(radar_detected_ch_time != NULL) {
+                            ch_temp = atoi(radar_detected_ch_time);
+                            if(ch_temp == ch_chg->channel) {
+                                if(update_db_radar_detected(radar_detected_ch_time) != RETURN_OK) {
+                                    wifi_util_error_print(WIFI_CTRL, "%s update_db_radar_detected returned error for channel:%d \n", __FUNCTION__, ch_chg->channel);
+                                }
+                                break;
+                            }
+                            radar_detected_ch_time = strtok_r(NULL, ";", &str_re);
+                        }
+                    }
+                    chan_state = CHAN_STATE_DFS_NOP_FINISHED;
+                    break;
+                case WIFI_EVENT_RADAR_PRE_CAC_EXPIRED :
+                    chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
+                    data->u.mon_stats_config.nop_up_status = FALSE;
+                    break;
+                case WIFI_EVENT_RADAR_CAC_STARTED :
+                    chan_state = CHAN_STATE_DFS_CAC_START;
+                    data->u.mon_stats_config.nop_up_status = FALSE;
+                    break;
+            }
+            push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
+
+            if (ch_chg->sub_event == WIFI_EVENT_RADAR_DETECTED) {
+                wifi_util_info_print(WIFI_CTRL,"%s:%d DFS RADAR_DETECTED on ch %d and will not be available for 30 mins\n",
+                                    __func__, __LINE__, ch_chg->channel);
+            } else if (ch_chg->sub_event == WIFI_EVENT_RADAR_NOP_FINISHED) {
+                wifi_util_info_print(WIFI_CTRL,"%s:%d DFS Blocked RADAR channel %d is now ready for use\n",
+                                    __func__, __LINE__, ch_chg->channel);
+            }
         switch (ch_chg->channelWidth)
         {
             case WIFI_CHANNELBANDWIDTH_20MHZ:
