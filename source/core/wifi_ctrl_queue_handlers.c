@@ -2742,7 +2742,8 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 data->u.mon_stats_config.nop_up_channel = radio_params->channel; 
                 data->u.mon_stats_config.channelWidth = radio_params->channelWidth;
                 data->u.mon_stats_config.band = radio_params->band;
-                data->u.mon_stats_config.nop_up_status = TRUE;
+                data->u.mon_stats_config.nop_up_status = is_nop_start_reboot;
+                push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
                 wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Channel: %u\n", __func__, __LINE__, data->u.mon_stats_config.nop_up_channel);
                 wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel Width: %d\n", __func__, __LINE__, data->u.mon_stats_config.channelWidth);
                 wifi_util_dbg_print(WIFI_CTRL, "%s:%d Band: %d\n", __func__, __LINE__, data->u.mon_stats_config.band);
@@ -2822,7 +2823,6 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                     data->u.mon_stats_config.nop_up_status = FALSE;
                     break;
             }
-            push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
 
             if (ch_chg->sub_event == WIFI_EVENT_RADAR_DETECTED) {
                 wifi_util_info_print(WIFI_CTRL,"%s:%d DFS RADAR_DETECTED on ch %d and will not be available for 30 mins\n",
