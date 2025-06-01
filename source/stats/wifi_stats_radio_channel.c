@@ -886,6 +886,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
                     break;
                 }
             }
+            wifi_util_dbg_print(WIFI_MON, "%s:%d nop-status%d\n", __func__, __LINE__, mon_data->nop_start_status);
             if(mon_data->nop_start_status == TRUE){
             for (unsigned int j = 0; j < mon_data->nop_channels_num; j++) {
                 wifi_util_dbg_print(WIFI_MON, "Checking: chan_list[%d] = %d against nop_chan_list[%d] = %d\n", 
