@@ -897,7 +897,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
                 }
             }}
             
-            if (!is_on_chan || !is_nop_chan) {
+            if (!is_on_chan && !is_nop_chan) {
                 updated_channels[new_num_channels++] = args->channel_list.channels_list[i];
                 wifi_util_dbg_print(WIFI_MON, "%s:%d Channel %d added to updated list\n", __func__, __LINE__, args->channel_list.channels_list[i]);
             }
