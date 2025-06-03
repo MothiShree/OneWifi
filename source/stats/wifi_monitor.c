@@ -1359,6 +1359,7 @@ int get_neighbor_scan_cfg(int radio_index,
 
 int get_nop_started_channels(wifi_mon_stats_config_t *data)
 {
+    
     int channel_list[MAX_DFS_CHANNELS] = {0};
     int channels_num = 0;
 
@@ -1391,7 +1392,7 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
             bool found = false;
 
             for (unsigned int j = 0; j < g_monitor_module.nop_channels_num; j++) {
-                if ((int)g_monitor_module.nop_started_channels[j] == channel_list[i]) {
+                if (g_monitor_module.nop_started_channels[j] == (unsigned int)channel_list[i]) {
                     found = true;
                     break;
                 }
@@ -1410,17 +1411,20 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
                 }
 
                 g_monitor_module.nop_started_channels = new_ptr;
-                (int)g_monitor_module.nop_started_channels[g_monitor_module.nop_channels_num] = channel_list[i];
-                g_monitor_module.nop_channels_num++;
 
-                wifi_util_dbg_print(WIFI_CTRL, "%s:%d Added NOP Channel: %u\n", __func__, __LINE__, channel_list[i]);
+                if (g_monitor_module.nop_channels_num < MAX_DFS_CHANNELS) {
+                    g_monitor_module.nop_started_channels[g_monitor_module.nop_channels_num] = channel_list[i];
+                    g_monitor_module.nop_channels_num++;
+
+                    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Added NOP Channel: %u\n", __func__, __LINE__, channel_list[i]);
+                }
             }
         }
     } else {
         // Remove channels that have completed NOP
         for (int i = 0; i < channels_num; i++) {
             for (unsigned int j = 0; j < g_monitor_module.nop_channels_num; j++) {
-                if ((int)g_monitor_module.nop_started_channels[j] == channel_list[i]) {
+                if (g_monitor_module.nop_started_channels[j] == (unsigned int)channel_list[i]) {
                     // Shift remaining entries
                     for (unsigned int k = j; k < g_monitor_module.nop_channels_num - 1; k++) {
                         g_monitor_module.nop_started_channels[k] = g_monitor_module.nop_started_channels[k + 1];
@@ -1433,6 +1437,7 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
                         g_monitor_module.nop_channels_num * sizeof(unsigned int)
                     );
 
+                    // Only update pointer if realloc is successful or result is NULL due to size 0
                     if (new_ptr || g_monitor_module.nop_channels_num == 0) {
                         g_monitor_module.nop_started_channels = new_ptr;
                     }
@@ -1454,7 +1459,6 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
 
     return RETURN_OK;
 }
-
 
 
 void clear_sta_counters(unsigned int vap_index)
