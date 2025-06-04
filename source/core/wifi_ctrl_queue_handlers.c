@@ -2780,7 +2780,6 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                             break;
                         }
                     }
-                     free(data);
                     break;
                 case WIFI_EVENT_RADAR_CAC_FINISHED :
                     chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
@@ -2829,7 +2828,6 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                         }
                     }
                     chan_state = CHAN_STATE_DFS_NOP_FINISHED;
-                    free(data);
                     break;
                 case WIFI_EVENT_RADAR_PRE_CAC_EXPIRED :
                     chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
@@ -2884,7 +2882,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 break;
             }
         }
-        free(data);
+
     } else {
         wifi_util_error_print(WIFI_CTRL,"%s: Invalid event for radio %d\n",__FUNCTION__, ch_chg->radioIndex);
         return;
