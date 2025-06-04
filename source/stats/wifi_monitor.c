@@ -1465,10 +1465,6 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
     }
 
     pthread_mutex_unlock(&g_monitor_module.data_lock);
-    if (g_monitor_module.nop_started_channels != NULL) {
-        free(g_monitor_module.nop_started_channels);
-        g_monitor_module.nop_started_channels = NULL;
-    }
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock\n", __func__, __LINE__);
 
     return RETURN_OK;
