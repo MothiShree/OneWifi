@@ -2795,6 +2795,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                     data->u.mon_stats_config.nop_up_channel = ch_chg->channel;
                     data->u.mon_stats_config.channelWidth = ch_chg->channelWidth;
                     data->u.mon_stats_config.nop_up_status = FALSE;
+                    data->u.mon_stats_config.band = radio_params->band;
                     push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
                     wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Finished Channel: %u\n", __func__, __LINE__, data->u.mon_stats_config.nop_up_channel);
                     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Channel Width: %d\n", __func__, __LINE__, data->u.mon_stats_config.channelWidth);
