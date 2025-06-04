@@ -1377,7 +1377,6 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Primary Channel: %d\n", __func__, __LINE__, primary_channel);
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d NOP Up Status: %d\n", __func__, __LINE__, data->nop_up_status);
 
-    g_monitor_module.nop_start_status = data->nop_up_status;
 
     if (get_on_channel_scan_list(band, bandwidth, primary_channel, channel_list, &channels_num) != 0) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d: Channel scan list not found\n", __func__, __LINE__);
