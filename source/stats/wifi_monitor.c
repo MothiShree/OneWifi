@@ -1406,6 +1406,8 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
 
                 if (new_ptr == NULL) {
                     wifi_util_error_print(WIFI_CTRL, "%s:%d realloc failed\n", __func__, __LINE__);
+                    free(g_monitor_module.nop_started_channels); 
+                    g_monitor_module.nop_started_channels = NULL; 
                     pthread_mutex_unlock(&g_monitor_module.data_lock);
                     return RETURN_ERR;
                 }
@@ -1425,6 +1427,7 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
         for (int i = 0; i < channels_num; i++) {
             for (unsigned int j = 0; j < g_monitor_module.nop_channels_num; j++) {
                 if (g_monitor_module.nop_started_channels[j] == (unsigned int)channel_list[i]) {
+                    wifi_util_dbg_print(WIFI_CTRL, "%s:%d Removed NOP Channel: %u\n", __func__, __LINE__, channel_list[i]);
                     // Shift remaining entries
                     for (unsigned int k = j; k < g_monitor_module.nop_channels_num - 1; k++) {
                         g_monitor_module.nop_started_channels[k] = g_monitor_module.nop_started_channels[k + 1];
@@ -1432,15 +1435,22 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
 
                     g_monitor_module.nop_channels_num--;
 
-                    unsigned int *new_ptr = realloc(
-                        g_monitor_module.nop_started_channels,
-                        g_monitor_module.nop_channels_num * sizeof(unsigned int)
-                    );
-
-                    // Only update pointer if realloc is successful or result is NULL due to size 0
-                    if (new_ptr || g_monitor_module.nop_channels_num == 0) {
-                        g_monitor_module.nop_started_channels = new_ptr;
+                    if (g_monitor_module.nop_channels_num == 0) {
+                        free(g_monitor_module.nop_started_channels);
+                        g_monitor_module.nop_started_channels = NULL;
+                    } else {
+                        unsigned int *new_ptr = realloc(g_monitor_module.nop_started_channels,
+                            g_monitor_module.nop_channels_num * sizeof(unsigned int));
+                        if (new_ptr != NULL) {
+                            g_monitor_module.nop_started_channels = new_ptr;
+                        } else {
+                            wifi_util_error_print(WIFI_CTRL, "%s:%d realloc shrink failed, keeping old pointer\n",
+                                __func__, __LINE__);
+                            // Continue with old pointer
+                        }
                     }
+
+                    break;  
 
                     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Removed NOP Channel: %u\n", __func__, __LINE__, channel_list[i]);
                     break; // Only remove once per match
@@ -1455,6 +1465,10 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
     }
 
     pthread_mutex_unlock(&g_monitor_module.data_lock);
+    if (g_monitor_module.nop_started_channels != NULL) {
+        free(g_monitor_module.nop_started_channels);
+        g_monitor_module.nop_started_channels = NULL;
+    }
     wifi_util_dbg_print(WIFI_CTRL, "%s:%d Released data lock\n", __func__, __LINE__);
 
     return RETURN_OK;
