@@ -2743,7 +2743,6 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                     data = (wifi_monitor_data_t *)calloc(1, sizeof(wifi_monitor_data_t));
                     if (!data) {
                         wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed\n", __func__, __LINE__);
-                        free(data);
                         return;
                     }   
                 data->u.mon_stats_config.nop_up_channel = radio_params->channel; 
@@ -2791,7 +2790,6 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 data = (wifi_monitor_data_t *)calloc(1, sizeof(wifi_monitor_data_t));
         if (!data) {
             wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed\n", __func__, __LINE__);
-            free(data);
             return;
         }
                     data->u.mon_stats_config.nop_up_channel = ch_chg->channel;
