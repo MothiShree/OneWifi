@@ -2719,9 +2719,15 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
             time_t time_now = time(NULL);
             l_radio = find_radio_config_by_index(ch_chg->radioIndex);        
             wifi_monitor_data_t *data = NULL;
+            data = (wifi_monitor_data_t *)calloc(1, sizeof(wifi_monitor_data_t));
+            if (!data) {
+                wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed\n", __func__, __LINE__);
+                return;
+            }
             if (l_radio == NULL) {
                 wifi_util_error_print(WIFI_CTRL,"%s:%d radio strucutre is not present for radio %d\n",
                                     __FUNCTION__, __LINE__,  ch_chg->radioIndex);
+                 free(data);                   
                 return;
             }
 
@@ -2740,11 +2746,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                         break;
                     }
                     unsigned int channel_index = 0;
-                    data = (wifi_monitor_data_t *)calloc(1, sizeof(wifi_monitor_data_t));
-                    if (!data) {
-                        wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed\n", __func__, __LINE__);
-                        return;
-                    }   
+                       
                 data->u.mon_stats_config.nop_up_channel = radio_params->channel; 
                 data->u.mon_stats_config.channelWidth = radio_params->channelWidth;
                 data->u.mon_stats_config.band = radio_params->band;
@@ -2787,11 +2789,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                     chan_state = CHAN_STATE_DFS_CAC_COMPLETED;
                     break;
                 case WIFI_EVENT_RADAR_NOP_FINISHED :
-                data = (wifi_monitor_data_t *)calloc(1, sizeof(wifi_monitor_data_t));
-        if (!data) {
-            wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed\n", __func__, __LINE__);
-            return;
-        }
+               
                     data->u.mon_stats_config.nop_up_channel = ch_chg->channel;
                     data->u.mon_stats_config.channelWidth = ch_chg->channelWidth;
                     data->u.mon_stats_config.nop_up_status = FALSE;
@@ -2834,6 +2832,10 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 case WIFI_EVENT_RADAR_CAC_STARTED :
                     chan_state = CHAN_STATE_DFS_CAC_START;
                     break;
+            }
+            
+            if (data && ch_chg->sub_event != WIFI_EVENT_RADAR_DETECTED && ch_chg->sub_event != WIFI_EVENT_RADAR_NOP_FINISHED) {
+                free(data);
             }
 
             if (ch_chg->sub_event == WIFI_EVENT_RADAR_DETECTED) {
