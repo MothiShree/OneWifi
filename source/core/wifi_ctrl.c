@@ -1507,11 +1507,11 @@ int wifi_hal_platform_post_init()
     }
 
     global_param = get_wifidb_wifi_global_param();
-    if (global_param != NULL) {
+    /*if (global_param != NULL) {
         wifi_hal_set_mgt_frame_rate_limit(global_param->mgt_frame_rate_limit_enable,
             global_param->mgt_frame_rate_limit, global_param->mgt_frame_rate_limit_window_size,
             global_param->mgt_frame_rate_limit_cooldown_time);
-    }
+    }*/
 
     return RETURN_OK;
 }

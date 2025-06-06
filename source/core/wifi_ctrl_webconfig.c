@@ -1290,9 +1290,9 @@ int webconfig_global_config_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_da
     if (global_param_changed) {
         param = &data_global_config->global_parameters;
 
-        wifi_hal_set_mgt_frame_rate_limit(param->mgt_frame_rate_limit_enable,
+        /*wifi_hal_set_mgt_frame_rate_limit(param->mgt_frame_rate_limit_enable,
             param->mgt_frame_rate_limit, param->mgt_frame_rate_limit_window_size,
-            param->mgt_frame_rate_limit_cooldown_time);
+            param->mgt_frame_rate_limit_cooldown_time);*/
 
         wifi_util_dbg_print(WIFI_CTRL,
             "Global config value is changed hence update the global config in DB\n");
