@@ -2756,18 +2756,19 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
         rdk_wifi_radio_t *l_radio = NULL;
         time_t time_now = time(NULL);
         l_radio = find_radio_config_by_index(ch_chg->radioIndex);
-        wifi_monitor_data_t *data = (wifi_monitor_data_t *)malloc(sizeof(wifi_monitor_data_t));
+        wifi_monitor_data_t *data = NULL;
+
+        data = (wifi_monitor_data_t *)calloc(1, sizeof(wifi_monitor_data_t));
         if (data == NULL) {
             wifi_util_error_print(WIFI_CTRL, "%s:%d: Memory allocation failed\n", __func__,
                 __LINE__);
-            free(data);    
             return;
         }
-        memset(data, 0, sizeof(wifi_monitor_data_t));
+
         if (l_radio == NULL) {
             wifi_util_error_print(WIFI_CTRL,"%s:%d radio strucutre is not present for radio %d\n",
                                 __FUNCTION__, __LINE__,  ch_chg->radioIndex);
-            free(data);                    
+            free(data);
             return;
         }
 
@@ -2793,7 +2794,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 data->u.mon_stats_config.nop_up_channel = radio_params->channel;
                 data->u.mon_stats_config.channel_width = radio_params->channelWidth;
                 data->u.mon_stats_config.band = radio_params->band;
-                data->u.mon_stats_config.nop_up_status = TRUE;
+                data->u.mon_stats_config.nop_up_status = true;
                 push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
 
                 if(!is_nop_start_reboot) {
@@ -2828,7 +2829,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
             case WIFI_EVENT_RADAR_NOP_FINISHED :
                 data->u.mon_stats_config.nop_up_channel = ch_chg->channel;
                 data->u.mon_stats_config.channel_width = ch_chg->channelWidth;
-                data->u.mon_stats_config.nop_up_status = FALSE;
+                data->u.mon_stats_config.nop_up_status = false;
                 push_event_to_monitor_queue(data, wifi_event_monitor_nop_start_status, NULL);
                 if( (unsigned int)l_radio->radarInfo.last_channel == ch_chg->channel && (time_now - l_radio->radarInfo.timestamp >= 1800)) {
                     l_radio->radarInfo.last_channel = 0;
@@ -2864,6 +2865,10 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
             case WIFI_EVENT_RADAR_CAC_STARTED :
                 chan_state = CHAN_STATE_DFS_CAC_START;
                 break;
+        }
+        
+        if (data && ch_chg->sub_event != WIFI_EVENT_RADAR_DETECTED && ch_chg->sub_event != WIFI_EVENT_RADAR_NOP_FINISHED) {
+            free(data);
         }
 
         if (ch_chg->sub_event == WIFI_EVENT_RADAR_DETECTED) {
@@ -2912,7 +2917,6 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
                 break;
             }
         }
-        free(data);
     } else {
         wifi_util_error_print(WIFI_CTRL,"%s: Invalid event for radio %d\n",__FUNCTION__, ch_chg->radioIndex);
         return;
