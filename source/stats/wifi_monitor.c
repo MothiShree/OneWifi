@@ -1387,11 +1387,11 @@ int get_nop_started_channels(wifi_mon_stats_config_t *data)
     }
 
     unsigned int num_unmatched = 0;
-
+    unsigned int j;
     for (int i = 0; i < channels_num; i++) {
-        for (unsigned int j = 0; j < g_monitor_module.nop_channels_num; j++) {
-            if (g_monitor_module.nop_started_channels[j] == channel_list[i]) {
-                break;  // channel already in list
+        for (j = 0; j < g_monitor_module.nop_channels_num; j++) {   
+            if (g_monitor_module.nop_started_channels[j] == unsigned(int)channel_list[i]) {
+                break;  
             }
         }
 
