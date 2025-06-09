@@ -871,7 +871,6 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
 		onchan_num_channels = 1;
 		on_chan_list[0] = radioOperation->channel;
 	}
-        pthread_mutex_lock(&mon_data->data_lock);
 // skip on-channel scan list
         for (int i = 0; i < args->channel_list.num_channels; i++) {
             int is_on_chan = 0;
@@ -895,7 +894,6 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
                 updated_channels[new_num_channels++] = args->channel_list.channels_list[i];
             }
         }
-        pthread_mutex_unlock(&mon_data->data_lock);
         channels[0] = updated_channels[0];
         for (i = 0; i < new_num_channels; i++) {
             if (mon_data->last_scanned_channel[args->radio_index] ==
