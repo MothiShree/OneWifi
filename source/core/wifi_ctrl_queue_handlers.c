@@ -194,6 +194,11 @@ void process_probe_req_frame_event(frame_data_t *msg, uint32_t msg_length)
 
 void process_auth_frame_event(frame_data_t *msg, uint32_t msg_length)
 {
+    wifi_monitor_data_t data;
+    memset(&data, 0, sizeof(wifi_monitor_data_t));
+    memcpy(&data.u.msg, msg, sizeof(frame_data_t));
+    data.id = msg_id++;
+    push_event_to_monitor_queue(&data,wifi_event_monitor_auth_req,NULL);
     wifi_util_dbg_print(WIFI_CTRL,"%s:%d wifi mgmt frame message: ap_index:%d length:%d type:%d dir:%d\r\n", __FUNCTION__, __LINE__, msg->frame.ap_index, msg->frame.len, msg->frame.type, msg->frame.dir);
 }
 
@@ -3526,8 +3531,9 @@ void handle_hal_indication(wifi_ctrl_t *ctrl, void *data, unsigned int len,
             __FUNCTION__, wifi_event_subtype_to_string(subtype));
         break;
     }
-
+#if ONEWIFI_ANALYTICS_APP_SUPPORT
     apps_mgr_analytics_event(&ctrl->apps_mgr, wifi_event_type_hal_ind, subtype, data);
+#endif
 }
 
 void update_subdoc_data(webconfig_subdoc_data_t *data, unsigned int num_ssid,
