@@ -2005,7 +2005,7 @@ static unsigned char updateNasIpStatus (int apIndex)
 
 int capture_vapup_status()
 {
-    int i = 0, vap_status = 0;
+    int i = 0;
     wifi_vap_info_t *vap_info;
     wifi_mgr_t *mgr = get_wifimgr_obj();
 
