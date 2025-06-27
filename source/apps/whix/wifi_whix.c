@@ -2024,19 +2024,16 @@ int capture_vapup_status()
                 __func__, __LINE__, vap_index);
             return RETURN_ERR;
         }
-        vap_status = vap_info->u.bss_info.enabled;
-if (mgr->radio_config[vap_info->radio_index].oper.enable == TRUE &&
-    mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
-    vap_status = vap_info->u.bss_info.enabled;
-    if (vap_status) {
-        vap_up_arr[vap_index] = vap_up_arr[vap_index] + 1;
-        if (!vap_nas_status[vap_index]) {
-            vap_nas_status[vap_index] = updateNasIpStatus(vap_index);
-        }
-    } else {
-        vap_nas_status[vap_index] = 0;
-    }
-}
+        if (mgr->radio_config[radio_index].oper.enable == TRUE &&
+            mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
+            if (vap_info->u.bss_info.enabled) {
+                vap_up_arr[vap_index]++;
+                if (!vap_nas_status[vap_index]) {
+                    vap_nas_status[vap_index] = updateNasIpStatus(vap_index);
+                }
+            } else {
+                vap_nas_status[vap_index] = 0;
+            }
         }
     }
     vap_iteration++;
