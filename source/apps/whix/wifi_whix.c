@@ -2009,6 +2009,8 @@ int capture_vapup_status()
     wifi_vap_info_t *vap_info;
     wifi_mgr_t *mgr = get_wifimgr_obj();
 
+    wifi_util_dbg_print(WIFI_APPS, "Entering %s\n", __func__);
+
     if (skip == 1) {
         wifi_util_dbg_print(WIFI_APPS, "Skipping as the calculation already made while syncing\n");
         skip = 0;
@@ -2019,24 +2021,43 @@ int capture_vapup_status()
         UINT vap_index = VAP_INDEX(mgr->hal_cap, i);
         int radio_index = RADIO_INDEX(mgr->hal_cap, i);
         vap_info = getVapInfo(vap_index);
+        wifi_util_dbg_print(WIFI_APPS, "%s: Checking VAP %d (vap_index=%d, radio_index=%d)\n", __func__, i, vap_index, radio_index);
+
         if (vap_info == NULL) {
             wifi_util_error_print(WIFI_APPS, "%s:%d: vap_info is NULL for vap_index : %d\r\n",
                 __func__, __LINE__, vap_index);
             return RETURN_ERR;
         }
+        wifi_util_dbg_print(WIFI_APPS, "%s: Radio enable=%d, force_disable_radio_feature=%d, VAP enabled=%d\n",
+            __func__,
+            mgr->radio_config[radio_index].oper.enable,
+            mgr->global_config.global_parameters.force_disable_radio_feature,
+            vap_info->u.bss_info.enabled);
+
         if (mgr->radio_config[radio_index].oper.enable == TRUE &&
             mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
             if (vap_info->u.bss_info.enabled) {
                 vap_up_arr[vap_index]++;
+                wifi_util_dbg_print(WIFI_APPS, "%s: VAP %d is up, incremented vap_up_arr[%d] to %u\n",
+                    __func__, vap_index, vap_index, vap_up_arr[vap_index]);
                 if (!vap_nas_status[vap_index]) {
                     vap_nas_status[vap_index] = updateNasIpStatus(vap_index);
+                    wifi_util_dbg_print(WIFI_APPS, "%s: Updated NAS IP status for VAP %d to %u\n",
+                        __func__, vap_index, vap_nas_status[vap_index]);
                 }
             } else {
                 vap_nas_status[vap_index] = 0;
+                wifi_util_dbg_print(WIFI_APPS, "%s: VAP %d is down, set vap_nas_status[%d] to 0\n",
+                    __func__, vap_index, vap_index);
             }
+        } else {
+            wifi_util_dbg_print(WIFI_APPS, "%s: Radio %d is disabled or force_disable_radio_feature is set, skipping VAP %d\n",
+                __func__, radio_index, vap_index);
         }
     }
     vap_iteration++;
+    wifi_util_dbg_print(WIFI_APPS, "%s: Incremented vap_iteration to %u\n", __func__, vap_iteration);
+    wifi_util_dbg_print(WIFI_APPS, "Exiting %s\n", __func__);
     return RETURN_OK;
 }
 
