@@ -47,7 +47,8 @@
 #ifndef  UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(_p_)         (void)(_p_)
 #endif
-
+#define TOTAL_WINDOW_SECONDS (5 * 60)
+#define SAMPLE_INTERVAL_SECONDS 30
 #define CHAN_UTIL_INTERVAL_MS 900000 // 15 mins
 #define TELEMETRY_UPDATE_INTERVAL_MS 3600000 // 1 hour
 #define CAPTURE_VAP_STATUS_INTERVAL_MS 5*60*1000 // 5 minutes
@@ -1065,7 +1066,7 @@ static void logVAPUpStatus()
         int radio_index =  RADIO_INDEX(mgr->hal_cap, vap_index);
         int radio_active_count = radio_up_arr[radio_index];
         if (radio_active_count > 0) {
-            vapup_percentage = (vap_up_arr[vap_index] * 100) / radio_active_count;
+vapup_percentage = (vap_up_time_seconds[vap_index] * 100) / TOTAL_WINDOW_SECONDS;
         } else {
             vapup_percentage = 0;
         }
@@ -1090,6 +1091,7 @@ static void logVAPUpStatus()
     vap_iteration = 0;
     memset(vap_up_arr, 0, sizeof(vap_up_arr));
     memset(radio_up_arr, 0, sizeof(radio_up_arr));
+    memset(vap_up_time_seconds, 0, sizeof(vap_up_time_seconds));
     wifi_util_dbg_print(WIFI_APPS, "Exiting %s:%d \n", __FUNCTION__, __LINE__);
 }
 
@@ -2037,7 +2039,7 @@ int capture_vapup_status()
         if (mgr->radio_config[radio_index].oper.enable == TRUE &&
             mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
             if (vap_info->u.bss_info.enabled) {
-                vap_up_arr[vap_index]++;
+                vap_up_time_seconds[vap_index] += SAMPLE_INTERVAL_SECONDS
                 wifi_util_dbg_print(WIFI_APPS, "%s: VAP %d is up, incremented vap_up_arr[%d] to %u\n",
                     __func__, vap_index, vap_index, vap_up_arr[vap_index]);
                 if (!vap_nas_status[vap_index]) {
