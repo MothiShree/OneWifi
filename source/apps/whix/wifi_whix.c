@@ -47,8 +47,8 @@
 #ifndef  UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(_p_)         (void)(_p_)
 #endif
-#define TOTAL_WINDOW_SECONDS (5 * 60)
 #define SAMPLE_INTERVAL_SECONDS 30
+#define TOTAL_WINDOW_SECONDS (5 * 60)
 #define CHAN_UTIL_INTERVAL_MS 900000 // 15 mins
 #define TELEMETRY_UPDATE_INTERVAL_MS 3600000 // 1 hour
 #define CAPTURE_VAP_STATUS_INTERVAL_MS 5*60*1000 // 5 minutes
@@ -65,6 +65,7 @@
 #define AP_UNABLE_TO_HANDLE_ADDITIONAL_ASSOCIATIONS 17
 static unsigned int radio_up_arr[MAX_NUM_RADIOS]={0};
 static unsigned int vap_up_arr[MAX_VAP]={0};
+unsigned int vap_up_time_seconds[MAX_VAPS] = {0};
 static unsigned char vap_nas_status[MAX_VAP]={0};
 static unsigned int vap_iteration=0;
 static unsigned int curr_uptime_val = 0;
@@ -2039,7 +2040,7 @@ int capture_vapup_status()
         if (mgr->radio_config[radio_index].oper.enable == TRUE &&
             mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
             if (vap_info->u.bss_info.enabled) {
-                vap_up_time_seconds[vap_index] += SAMPLE_INTERVAL_SECONDS
+                vap_up_time_seconds[vap_index] += SAMPLE_INTERVAL_SECONDS;
                 wifi_util_dbg_print(WIFI_APPS, "%s: VAP %d is up, incremented vap_up_arr[%d] to %u\n",
                     __func__, vap_index, vap_index, vap_up_arr[vap_index]);
                 if (!vap_nas_status[vap_index]) {
