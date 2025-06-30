@@ -65,7 +65,7 @@
 #define AP_UNABLE_TO_HANDLE_ADDITIONAL_ASSOCIATIONS 17
 static unsigned int radio_up_arr[MAX_NUM_RADIOS]={0};
 static unsigned int vap_up_arr[MAX_VAP]={0};
-unsigned int vap_up_time_seconds[MAX_VAPS] = {0};
+unsigned int vap_up_time_seconds[MAX_VAP] = {0};
 static unsigned char vap_nas_status[MAX_VAP]={0};
 static unsigned int vap_iteration=0;
 static unsigned int curr_uptime_val = 0;
