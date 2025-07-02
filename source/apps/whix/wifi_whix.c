@@ -64,10 +64,13 @@
 #define AP_UNABLE_TO_HANDLE_ADDITIONAL_ASSOCIATIONS 17
 static unsigned int vap_up_arr[MAX_VAP]={0};
 static unsigned char vap_nas_status[MAX_VAP]={0};
-static unsigned int vap_iteration=0;
 static unsigned int curr_uptime_val = 0;
 static unsigned int prev_uptime_val = 0;
 static unsigned int skip = 0;
+static unsigned int total_uptime = 0;
+static unsigned int prev_uptime =0;
+static unsigned int curr_uptime = 0;
+static unsigned int current_time = 0;
 static const char *wifi_health_log = "/rdklogs/logs/wifihealth.txt";
 
 
@@ -1034,6 +1037,7 @@ static void logVAPUpStatus()
     char tmp[128] = { 0 };
     errno_t rc = -1;
     UINT vap_index = 0;
+    unsigned int vap_up_percentage = 0;
 
     wifi_mgr_t *mgr = get_wifimgr_obj();
 
@@ -1044,10 +1048,28 @@ static void logVAPUpStatus()
         ERR_CHK(rc);
     }
 
-    curr_uptime_val = get_sys_uptime();
-    vap_iter = (curr_uptime_val - prev_uptime_val) / (60 * 5); /*One iteration per 5 mins*/
+    // Use a static variable to store the last marker update time across function calls
+    static unsigned int last_marker_updated_time = 0;
+    unsigned int total_run_time = 0;
+
+    if (last_marker_updated_time == 0) {
+        last_marker_updated_time = current_time;
+        total_run_time = 1; // Prevent division by zero on first run
+    } else {
+        total_run_time = current_time - last_marker_updated_time;
+        last_marker_updated_time = current_time;
+        if (total_run_time == 0) {
+            total_run_time = 1; // Prevent division by zero
+        }
+    }
+    vap_up_percentage = (total_up_time / total_run_time) * 100;
+    last_marker_updated_time = current_time;
+    total_up_time = 0; // Reset total up time after logging
+
+    //curr_uptime_val = get_sys_uptime();
+    //vap_iter = (curr_uptime_val - prev_uptime_val) / (60 * 5); /*One iteration per 5 mins*/
     /* syncing the vap_iteration to the upload period */
-    if ((vap_iter > vap_iteration) || (vap_iteration < 1)) {
+    /*if ((vap_iter > vap_iteration) || (vap_iteration < 1)) {
         capture_vapup_status();
         if (vap_iteration < 1) {
             wifi_util_dbg_print(WIFI_APPS, "%s:%d vap_iteration is not updated\n", __func__,
@@ -1055,16 +1077,15 @@ static void logVAPUpStatus()
             return;
         }
         skip = 1;
-    }
+    }*/
     for (i = 0; i < (int)getTotalNumberVAPs(); i++) {
         vap_index = VAP_INDEX(mgr->hal_cap, i);
         wifi_util_dbg_print(WIFI_APPS,
-            "vap_index is %d vap_iteration is %d and vap_up_arr value is %d\n", vap_index,
-            vap_iteration, vap_up_arr[vap_index]);
-        vapup_percentage = (vap_up_arr[vap_index] * 100) / vap_iteration;
+            "vap_index is %d vap_iteration is  and vap_up_arr value is %d\n", vap_index, vap_up_arr[vap_index]);
+        vap_up_percentage = (vap_up_arr[vap_index] * 100) / vap_iteration;
 
         char delimiter = (i + 1) < ((int)getTotalNumberVAPs() + 1) ? ';' : ' ';
-        rc = sprintf_s(vap_buf, sizeof(vap_buf), "%d,%d%c", (vap_index + 1), vapup_percentage,
+        rc = sprintf_s(vap_buf, sizeof(vap_buf), "%d,%d%c", (vap_index + 1), vap_up_percentage,
             delimiter);
         if (rc < EOK) {
             ERR_CHK(rc);
@@ -1079,8 +1100,8 @@ static void logVAPUpStatus()
     write_to_file(wifi_health_log, log_buf);
     wifi_util_dbg_print(WIFI_APPS, "%s", log_buf);
     get_stubs_descriptor()->t2_event_s_fn("WIFI_VAPPERC_split", telemetry_buf);
-    prev_uptime_val = curr_uptime_val;
-    vap_iteration = 0;
+    //prev_uptime_val = curr_uptime_val;
+    //vap_iteration = 0;
     memset(vap_up_arr, 0, sizeof(vap_up_arr));
     wifi_util_dbg_print(WIFI_APPS, "Exiting %s:%d \n", __FUNCTION__, __LINE__);
 }
@@ -1995,7 +2016,7 @@ static unsigned char updateNasIpStatus (int apIndex)
 #endif
 }
 
-int capture_vapup_status()
+/*int capture_vapup_status()
 {
     int i = 0, vap_status = 0;
     wifi_vap_info_t *vap_info;
@@ -2027,7 +2048,7 @@ int capture_vapup_status()
     }
     vap_iteration++;
     return RETURN_OK;
-}
+}*/
 
 int handle_whix_provider_response(wifi_app_t *app, wifi_event_t *event)
 {
@@ -2331,12 +2352,15 @@ static int push_whix_config_event_to_monitor_queue(wifi_mon_stats_request_state_
         wifi_util_dbg_print(WIFI_APPS, "Cancelling scheduler\n");
         scheduler_cancel_timer_task(ctrl->sched, app->data.u.whix.sched_handler_id);
         app->data.u.whix.sched_handler_id = 0;
-        vap_iteration = 0;
         memset(vap_up_arr, 0, sizeof(vap_up_arr));
     }
+
+    if(current_time == 0) {
+        current_time = get_sys_uptime();
+    }
     /* Add a scheduler task to calculate vapup status */
-    scheduler_add_timer_task(ctrl->sched, FALSE, &(app->data.u.whix.sched_handler_id),
-        capture_vapup_status, NULL, CAPTURE_VAP_STATUS_INTERVAL_MS, 0);
+    /*scheduler_add_timer_task(ctrl->sched, FALSE, &(app->data.u.whix.sched_handler_id),
+        capture_vapup_status, NULL, CAPTURE_VAP_STATUS_INTERVAL_MS, 0);*/
 
     config_rejected_client_stats(app);
 
@@ -2364,7 +2388,7 @@ static int push_whix_config_event_to_monitor_queue(wifi_mon_stats_request_state_
 
 void reconfigure_whix_interval(wifi_app_t *app, wifi_event_t *event)
 {
-    int whix_log_interval = 0, whix_chutil_interval = 0;
+    int whix_log_interval = 0, whix_chutil_interval = 0, vap_status = 0;
     //copy the log interval from webconfig
     webconfig_subdoc_data_t *webconfig_data = NULL;
     webconfig_data = event->u.webconfig_data;
@@ -2376,6 +2400,21 @@ void reconfigure_whix_interval(wifi_app_t *app, wifi_event_t *event)
     }
     if (whix_chutil_interval) {
         send_monitor_event(wifi_event_monitor_update_interop_interval,"interop_interval");
+    }
+    vap_status = vap_info->u.bss_info.enabled;
+    wifi_mgr_t *mgr = get_wifimgr_obj();
+
+    if (mgr != NULL && vap_info != NULL) {
+        current_up_time = get_sys_uptime();
+        if (mgr->radio_config[vap_info->radio_index].oper.enable == TRUE ||
+            mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
+            if (vap_status != 0) {
+                total_up_time = (current_up_time - previous_up_time) + total_up_time;
+                previous_up_time = current_up_time;
+            } else if (vap_status == 0) {
+                previous_up_time = current_up_time;
+            }
+        }
     }
     config_rejected_client_stats(app);
 }
