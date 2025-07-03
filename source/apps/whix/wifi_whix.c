@@ -1988,7 +1988,7 @@ static BOOL erouterGetIpAddress()
 }
 #endif
 
-//static unsigned char updateNasIpStatus (int apIndex)
+/*static unsigned char updateNasIpStatus (int apIndex)
 {
 #if defined (DUAL_CORE_XB3)
 
@@ -2011,7 +2011,7 @@ static BOOL erouterGetIpAddress()
     UNREFERENCED_PARAMETER(apIndex);
     return 1;
 #endif
-}
+}*/
 
 /*int capture_vapup_status()
 {
@@ -2407,10 +2407,10 @@ void reconfigure_whix_interval(wifi_app_t *app, wifi_event_t *event)
         if (mgr->radio_config[vap_info->radio_index].oper.enable == TRUE ||
             mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
             if (vap_status != 0) {
-                total_uptime = (current_up_time - prev_uptime) + total_uptime;
-                previous_up_time = current_up_time;
+                total_uptime = (current_uptime - prev_uptime) + total_uptime;
+                prev_uptime = current_uptime;
             } else if (vap_status == 0) {
-                previous_up_time = current_up_time;
+                prev_uptime = current_uptime;
             }
         }
     }
