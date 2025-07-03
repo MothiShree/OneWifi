@@ -2407,10 +2407,10 @@ void reconfigure_whix_interval(wifi_app_t *app, wifi_event_t *event)
         if (mgr->radio_config[vap_info->radio_index].oper.enable == TRUE ||
             mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
             if (vap_status != 0) {
-                total_uptime = (current_uptime - prev_uptime) + total_uptime;
-                prev_uptime = current_uptime;
+                total_uptime = (current_time - prev_uptime) + total_uptime;
+                prev_uptime = current_time;
             } else if (vap_status == 0) {
-                prev_uptime = current_uptime;
+                prev_uptime = current_time;
             }
         }
     }
