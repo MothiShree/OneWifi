@@ -63,13 +63,12 @@
     arg[5]
 #define AP_UNABLE_TO_HANDLE_ADDITIONAL_ASSOCIATIONS 17
 static unsigned int vap_up_arr[MAX_VAP]={0};
-static unsigned char vap_nas_status[MAX_VAP]={0};
-static unsigned int curr_uptime_val = 0;
-static unsigned int prev_uptime_val = 0;
-static unsigned int skip = 0;
+//static unsigned char vap_nas_status[MAX_VAP]={0};
+//static unsigned int curr_uptime_val = 0;
+//static unsigned int prev_uptime_val = 0;
+//static unsigned int skip = 0;
 static unsigned int total_uptime = 0;
 static unsigned int prev_uptime =0;
-static unsigned int curr_uptime = 0;
 static unsigned int current_time = 0;
 static const char *wifi_health_log = "/rdklogs/logs/wifihealth.txt";
 
@@ -1029,8 +1028,6 @@ static void get_device_flag(char flag[], int size, char *list_name)
 static void logVAPUpStatus()
 {
     int i = 0;
-    int vapup_percentage = 0;
-    unsigned int vap_iter = 0;
     char log_buf[1024] = { 0 };
     char telemetry_buf[1024] = { 0 };
     char vap_buf[16] = { 0 };
@@ -1062,9 +1059,9 @@ static void logVAPUpStatus()
             total_run_time = 1; // Prevent division by zero
         }
     }
-    vap_up_percentage = (total_up_time / total_run_time) * 100;
+    vap_up_percentage = (total_uptime / total_run_time) * 100;
     last_marker_updated_time = current_time;
-    total_up_time = 0; // Reset total up time after logging
+    total_uptime = 0; // Reset total up time after logging
 
     //curr_uptime_val = get_sys_uptime();
     //vap_iter = (curr_uptime_val - prev_uptime_val) / (60 * 5); /*One iteration per 5 mins*/
@@ -1082,7 +1079,7 @@ static void logVAPUpStatus()
         vap_index = VAP_INDEX(mgr->hal_cap, i);
         wifi_util_dbg_print(WIFI_APPS,
             "vap_index is %d vap_iteration is  and vap_up_arr value is %d\n", vap_index, vap_up_arr[vap_index]);
-        vap_up_percentage = (vap_up_arr[vap_index] * 100) / vap_iteration;
+        //vap_up_percentage = (vap_up_arr[vap_index] * 100) / vap_iteration;
 
         char delimiter = (i + 1) < ((int)getTotalNumberVAPs() + 1) ? ';' : ' ';
         rc = sprintf_s(vap_buf, sizeof(vap_buf), "%d,%d%c", (vap_index + 1), vap_up_percentage,
@@ -1991,7 +1988,7 @@ static BOOL erouterGetIpAddress()
 }
 #endif
 
-static unsigned char updateNasIpStatus (int apIndex)
+//static unsigned char updateNasIpStatus (int apIndex)
 {
 #if defined (DUAL_CORE_XB3)
 
@@ -2389,6 +2386,7 @@ static int push_whix_config_event_to_monitor_queue(wifi_mon_stats_request_state_
 void reconfigure_whix_interval(wifi_app_t *app, wifi_event_t *event)
 {
     int whix_log_interval = 0, whix_chutil_interval = 0, vap_status = 0;
+    wifi_vap_info_t *vap_info;
     //copy the log interval from webconfig
     webconfig_subdoc_data_t *webconfig_data = NULL;
     webconfig_data = event->u.webconfig_data;
@@ -2405,11 +2403,11 @@ void reconfigure_whix_interval(wifi_app_t *app, wifi_event_t *event)
     wifi_mgr_t *mgr = get_wifimgr_obj();
 
     if (mgr != NULL && vap_info != NULL) {
-        current_up_time = get_sys_uptime();
+        current_time = get_sys_uptime();
         if (mgr->radio_config[vap_info->radio_index].oper.enable == TRUE ||
             mgr->global_config.global_parameters.force_disable_radio_feature == FALSE) {
             if (vap_status != 0) {
-                total_up_time = (current_up_time - previous_up_time) + total_up_time;
+                total_uptime = (current_up_time - prev_uptime) + total_uptime;
                 previous_up_time = current_up_time;
             } else if (vap_status == 0) {
                 previous_up_time = current_up_time;
