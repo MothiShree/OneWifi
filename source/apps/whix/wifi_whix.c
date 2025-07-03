@@ -2385,11 +2385,22 @@ static int push_whix_config_event_to_monitor_queue(wifi_mon_stats_request_state_
 
 void reconfigure_whix_interval(wifi_app_t *app, wifi_event_t *event)
 {
-    int whix_log_interval = 0, whix_chutil_interval = 0, vap_status = 0;
+    int whix_log_interval = 0, whix_chutil_interval = 0, vap_status = 0, vap_index = 0;
     wifi_vap_info_t *vap_info;
     //copy the log interval from webconfig
     webconfig_subdoc_data_t *webconfig_data = NULL;
+    if (event->u.webconfig_data == NULL) {
+        wifi_util_error_print(WIFI_APPS, "%s:%d webconfig_data is NULL\n", __func__, __LINE__);
+        return;
+    }
     webconfig_data = event->u.webconfig_data;
+    if (event->u.mon_data.mon_stats_config.args.vap_index >= 0) {
+        vap_index = event->u.mon_data.mon_stats_config.args.vap_index;
+    } else {
+        wifi_util_error_print(WIFI_APPS, "%s:%d vap_index is not available\n", __func__, __LINE__);
+        return;
+    }
+    vap_info = getVapInfo(vap_index);
     whix_log_interval = webconfig_data->u.decoded.config.global_parameters.whix_log_interval;
     whix_chutil_interval = webconfig_data->u.decoded.config.global_parameters.whix_chutility_loginterval;
     wifi_util_dbg_print(WIFI_APPS,"%s:%d Intervals are %d %d\n", __func__, __LINE__, whix_log_interval, whix_chutil_interval);
