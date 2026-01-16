@@ -3435,16 +3435,15 @@ void process_acs_keep_out_channels_event(const char *json_data)
     }
     memset(data, 0, sizeof(webconfig_subdoc_data_t));
 
-    decode_acs_keep_out_json(json_data, numOfRadios,  data);
-    for (unsigned int i = 0; i < numOfRadios; i++) {
+    decode_acs_keep_out_json(json_data,numOfRadios, data);
+    for(unsigned int i=0;i<numOfRadios;i++)
+    {
         radio_oper = (wifi_radio_operationParam_t *)get_wifidb_radio_map(i);
         if (radio_oper)
         {
             radio_oper->acs_keep_out_reset = data->u.decoded.radios[i].oper.acs_keep_out_reset;
-            memcpy(radio_oper->channels_per_bandwidth,
-                 data->u.decoded.radios[i].oper.channels_per_bandwidth,
-                 sizeof(data->u.decoded.radios[i].oper.channels_per_bandwidth));
-            if (radio_oper->acs_keep_out_reset)
+            memcpy(radio_oper->channels_per_bandwidth, data->u.decoded.radios[i].oper.channels_per_bandwidth, sizeof(data->u.decoded.radios[i].oper.channels_per_bandwidth));
+            if(radio_oper->acs_keep_out_reset)
             {
                 wifi_hal_set_acs_keep_out_chans(NULL, i);
                 radio_oper->acs_keep_out_reset = false;
@@ -4056,6 +4055,13 @@ void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len
     }
     memset(data, 0, sizeof(webconfig_subdoc_data_t));
 
+    data = (webconfig_subdoc_data_t *)malloc(sizeof(webconfig_subdoc_data_t));
+    if (data == NULL) {
+        wifi_util_error_print(WIFI_CTRL,"%s:%d: Failed to allocate memory\n", __func__, __LINE__);
+        return;
+    }
+    memset(data, 0, sizeof(webconfig_subdoc_data_t));
+
     switch (subtype) {
     case wifi_event_webconfig_set_data:
     case wifi_event_webconfig_set_data_dml:
@@ -4116,6 +4122,7 @@ void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len
             wifi_event->sub_type = subtype;
             wifi_event->u.webconfig_data = data;
             apps_mgr_event(&ctrl->apps_mgr, wifi_event);
+            free_webconfig_msg_payload(subtype, data);
             if (wifi_event != NULL) {
                 free(wifi_event);
             }
