@@ -142,11 +142,11 @@ wifi_service_t *create_service(wifi_services_mgr_t *mgr, rdk_wifi_radio_t *radio
         // Time the node creation (suspected heavy function)
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1e9;
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE NODE CREATION TIME: %.3f seconds\n", elapsed);
+        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE NODE CREATION TIME: %.3f seconds\n", __func__, __LINE__, elapsed);
         svc->desc.create_nodes_fn(svc, radio_config, hal_cap, service);
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1e9;
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE INIT END: %ld.%09ld (total elapsed: %.3f seconds)\n", end.tv_sec, end.tv_nsec, elapsed);
+        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE INIT END: %ld.%09ld (total elapsed: %.3f seconds)\n", __func__, __LINE__, end.tv_sec, end.tv_nsec, elapsed);
     } else {
         wifi_util_error_print(WIFI_SERVICES,"%s:%d: Service descriptor: %s not found\n", __func__, __LINE__, service->name);
         return NULL;
