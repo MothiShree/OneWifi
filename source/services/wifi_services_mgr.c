@@ -136,6 +136,10 @@ wifi_service_t *create_service(wifi_services_mgr_t *mgr, rdk_wifi_radio_t *radio
         clock_gettime(CLOCK_MONOTONIC, &start);
         wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE INIT START: %ld.%09ld\n", __func__, __LINE__, start.tv_sec, start.tv_nsec);
         svc = (wifi_service_t *)malloc(sizeof(wifi_service_t));
+        if (!svc) {
+        wifi_util_error_print(WIFI_SERVICES, "%s:%d: ERROR: malloc failed\n", __func__, __LINE__);
+        return NULL;
+        }
         memset(svc, 0, sizeof(wifi_service_t));
         memcpy(&svc->desc, &mesh_service_desc, sizeof(wifi_service_descriptor_t));
         svc->nodes = hash_map_create();
@@ -143,10 +147,14 @@ wifi_service_t *create_service(wifi_services_mgr_t *mgr, rdk_wifi_radio_t *radio
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1e9;
         wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE NODE CREATION TIME: %.3f seconds\n", __func__, __LINE__, elapsed);
+        if (svc->desc.create_nodes_fn) {
         svc->desc.create_nodes_fn(svc, radio_config, hal_cap, service);
+        } else {
+        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ ERROR: create_nodes_fn is NULL\n", __func__, __LINE__);
+        }
         clock_gettime(CLOCK_MONOTONIC, &end);
         elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1e9;
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE INIT END: %ld.%09ld (total elapsed: %.3f seconds)\n", __func__, __LINE__, end.tv_sec, end.tv_nsec, elapsed);
+        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE INIT END: %lld.%09ld (total elapsed: %.3f seconds)\n", __func__, __LINE__, end.tv_sec, end.tv_nsec, elapsed);
     } else {
         wifi_util_error_print(WIFI_SERVICES,"%s:%d: Service descriptor: %s not found\n", __func__, __LINE__, service->name);
         return NULL;
