@@ -112,57 +112,116 @@ void services_mgr_delete_service_by_type(wifi_services_mgr_t *mgr, wifi_service_
     services_mgr_delete_service(mgr, name);
 }
 
-wifi_service_t *create_service(wifi_services_mgr_t *mgr, rdk_wifi_radio_t *radio_config, wifi_hal_capability_t *hal_cap, const service_t *service)
+wifi_service_t *create_service(wifi_services_mgr_t *mgr,
+                               rdk_wifi_radio_t *radio_config,
+                               wifi_hal_capability_t *hal_cap,
+                               const service_t *service)
 {
-    wifi_service_t *svc;
+    wifi_service_t *svc = NULL;
+    struct timeval func_start, func_end;
+    struct timeval block_start, block_end;
+    long diff_ms = 0;
 
-    if (strncmp(service->name, "Public", strlen("Public")) == 0) {
-        svc = (wifi_service_t *)malloc(sizeof(wifi_service_t));
-        memset(svc, 0, sizeof(wifi_service_t));
-        memcpy(&svc->desc, &public_service_desc, sizeof(wifi_service_descriptor_t));
-        svc->nodes = hash_map_create();
-        svc->desc.create_nodes_fn(svc, radio_config, hal_cap, service);
+    gettimeofday(&func_start, NULL);
 
-    } else if (strncmp(service->name, "Private", strlen("Private")) == 0) {
-        svc = (wifi_service_t *)malloc(sizeof(wifi_service_t));
-        memset(svc, 0, sizeof(wifi_service_t));
-        memcpy(&svc->desc, &private_service_desc, sizeof(wifi_service_descriptor_t));
-        svc->nodes = hash_map_create();
-        svc->desc.create_nodes_fn(svc, radio_config, hal_cap, service);
-      
-    } else if (strncmp(service->name, "Mesh", strlen("Mesh")) == 0) {
-        struct timespec start, end;
-        double elapsed;
-        clock_gettime(CLOCK_MONOTONIC, &start);
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE INIT START: %ld.%09ld\n", __func__, __LINE__, start.tv_sec, start.tv_nsec);
-        svc = (wifi_service_t *)malloc(sizeof(wifi_service_t));
+    wifi_util_dbg_print(WIFI_SERVICES,
+        "%s:%d: MJ Enter create_service for %s\n",
+        __func__, __LINE__, service->name);
+
+    if (strncmp(service->name, "Public", 6) == 0) {
+
+        svc = malloc(sizeof(wifi_service_t));
         if (!svc) {
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: ERROR: malloc failed\n", __func__, __LINE__);
-        return NULL;
+            wifi_util_error_print(WIFI_SERVICES,
+                "%s:%d: MJ malloc failed for Public\n",
+                __func__, __LINE__);
+            return NULL;
         }
+
         memset(svc, 0, sizeof(wifi_service_t));
-        memcpy(&svc->desc, &mesh_service_desc, sizeof(wifi_service_descriptor_t));
+        memcpy(&svc->desc, &public_service_desc,
+               sizeof(wifi_service_descriptor_t));
+
         svc->nodes = hash_map_create();
-        // Time the node creation (suspected heavy function)
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1e9;
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE NODE CREATION TIME: %.3f seconds\n", __func__, __LINE__, elapsed);
-        if (svc->desc.create_nodes_fn) {
+
+        gettimeofday(&block_start, NULL);
         svc->desc.create_nodes_fn(svc, radio_config, hal_cap, service);
-        } else {
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ ERROR: create_nodes_fn is NULL\n", __func__, __LINE__);
+        gettimeofday(&block_end, NULL);
+
+    } else if (strncmp(service->name, "Private", 7) == 0) {
+
+        svc = malloc(sizeof(wifi_service_t));
+        if (!svc) {
+            wifi_util_error_print(WIFI_SERVICES,
+                "%s:%d: MJ malloc failed for Private\n",
+                __func__, __LINE__);
+            return NULL;
         }
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1e9;
-        wifi_util_error_print(WIFI_SERVICES, "%s:%d: MJ MESH SERVICE INIT END: %lld.%09ld (total elapsed: %.3f seconds)\n", __func__, __LINE__, end.tv_sec, end.tv_nsec, elapsed);
-    } else {
-        wifi_util_error_print(WIFI_SERVICES,"%s:%d: Service descriptor: %s not found\n", __func__, __LINE__, service->name);
+
+        memset(svc, 0, sizeof(wifi_service_t));
+        memcpy(&svc->desc, &private_service_desc,
+               sizeof(wifi_service_descriptor_t));
+
+        svc->nodes = hash_map_create();
+
+        gettimeofday(&block_start, NULL);
+        svc->desc.create_nodes_fn(svc, radio_config, hal_cap, service);
+        gettimeofday(&block_end, NULL);
+
+    } else if (strncmp(service->name, "Mesh", 4) == 0) {
+
+        wifi_util_dbg_print(WIFI_SERVICES,
+            "%s:%d: MJ >>> Creating Mesh service <<<\n",
+            __func__, __LINE__);
+
+        svc = malloc(sizeof(wifi_service_t));
+        if (!svc) {
+            wifi_util_error_print(WIFI_SERVICES,
+                "%s:%d: MJ malloc failed for Mesh\n",
+                __func__, __LINE__);
+            return NULL;
+        }
+
+        memset(svc, 0, sizeof(wifi_service_t));
+        memcpy(&svc->desc, &mesh_service_desc,
+               sizeof(wifi_service_descriptor_t));
+
+        svc->nodes = hash_map_create();
+
+        gettimeofday(&block_start, NULL);
+        svc->desc.create_nodes_fn(svc, radio_config, hal_cap, service);
+        gettimeofday(&block_end, NULL);
+
+        diff_ms = (block_end.tv_sec - block_start.tv_sec) * 1000 +
+                  (block_end.tv_usec - block_start.tv_usec) / 1000;
+
+        if (diff_ms > 50) {   // log only if delay noticeable
+            wifi_util_error_print(WIFI_SERVICES,
+                "%s:%d: MJ Mesh create_nodes_fn took %ld ms\n",
+                __func__, __LINE__, diff_ms);
+        }
+    }
+    else {
+        wifi_util_error_print(WIFI_SERVICES,
+            "%s:%d: MJ Service descriptor: %s not found\n",
+            __func__, __LINE__, service->name);
         return NULL;
     }
 
     svc->mgr = mgr;
     svc->ctrl = mgr->ctrl;
     svc->cap = hal_cap;
+
+    gettimeofday(&func_end, NULL);
+
+    diff_ms = (func_end.tv_sec - func_start.tv_sec) * 1000 +
+              (func_end.tv_usec - func_start.tv_usec) / 1000;
+
+    if (diff_ms > 100) {
+        wifi_util_dbg_print(WIFI_SERVICES,
+            "%s:%d: MJ create_service(%s) took %ld ms\n",
+            __func__, __LINE__, service->name, diff_ms);
+    }
 
     return svc;
 }
