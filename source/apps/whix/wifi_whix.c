@@ -1259,8 +1259,8 @@ void print_sta_client_telemetry_data(unsigned int num_devs, int vap_index, sta_d
  * When current < previous due to wrap-around, the unsigned subtraction 
  * (current - previous) yields the correct positive delta due to modular arithmetic.
  * For example, if previous=0xFFFFFFFF and current=0x00000001, the subtraction
- * gives 2, which correctly represents that the counter incremented twice 
- * (once from 0xFFFFFFFF to 0, and once from 0 to 1).
+ * gives 2, which correctly represents that the counter increased by 2 
+ * (wrapping from 0xFFFFFFFF to 0x00000000, then to 0x00000001).
  *
  * @param current Current counter value
  * @param previous Previous counter value
