@@ -1255,8 +1255,10 @@ void print_sta_client_telemetry_data(unsigned int num_devs, int vap_index, sta_d
 /**
  * @brief Calculate the difference between two counter values, handling wrap-around.
  *
- * This helper handles 32-bit counter wrap-around. Uses unsigned arithmetic which
- * naturally handles wrap-around correctly when the counter wraps at UINT32_MAX.
+ * This helper handles 32-bit counter wrap-around using unsigned arithmetic.
+ * When current < previous due to wrap-around, the unsigned subtraction 
+ * (current - previous) yields the correct positive delta due to modular arithmetic.
+ * For example, if previous=0xFFFFFFFF and current=0x00000001, the result is 2.
  *
  * @param current Current counter value
  * @param previous Previous counter value
