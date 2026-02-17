@@ -7912,15 +7912,30 @@ void init_wifidb_data()
             }
 
             for (unsigned int i = 0; i < l_vap_param_cfg->num_vaps; i++) {
+				wifi_util_info_print(WIFI_DB, "%s:%d: MJ Processing VAP %u / %u\n",
+            __func__, __LINE__, i + 1, l_vap_param_cfg->num_vaps);
+                wifi_util_info_print(WIFI_DB, "%s:%d: MJ VAP Name = %s\n",
+            __func__, __LINE__, l_vap_param_cfg->vap_array[i].vap_name);
                 uint8_t vap_index= convert_vap_name_to_index(&((wifi_mgr_t*) get_wifimgr_obj())->hal_cap.wifi_prop, l_vap_param_cfg->vap_array[i].vap_name);
                 if ((int)vap_index < 0) {
-                    wifi_util_error_print(WIFI_DB,"%s:%d: %s invalid vap name \n",__func__, __LINE__,l_vap_param_cfg->vap_array[i].vap_name);
+                    wifi_util_error_print(WIFI_DB,"%s:%d: %s MJ invalid vap name \n",__func__, __LINE__,l_vap_param_cfg->vap_array[i].vap_name);
                     continue;
                 }
+				wifi_util_info_print(WIFI_DB, "%s:%d: MJ VAP index resolved = %d\n",
+            __func__, __LINE__, vap_index);
                 if (isVapHotspot(vap_index)) {
+					 wifi_util_info_print(WIFI_DB, "%s:%d: MJ Hotspot VAP detected. Fetching preassoc/postassoc configs for %s\n",
+                __func__, __LINE__, l_vap_param_cfg->vap_array[i].vap_name);
                     wifidb_get_preassoc_ctrl_config(l_vap_param_cfg->vap_array[i].vap_name, &l_vap_param_cfg->vap_array[i].u.bss_info.preassoc);
+					wifi_util_info_print(WIFI_DB, "%s:%d: MJ Preassoc config loaded for %s\n",
+                __func__, __LINE__, l_vap_param_cfg->vap_array[i].vap_name);
                     wifidb_get_postassoc_ctrl_config(l_vap_param_cfg->vap_array[i].vap_name, &l_vap_param_cfg->vap_array[i].u.bss_info.postassoc);
-                }
+					wifi_util_info_print(WIFI_DB, "%s:%d: MJ Postassoc config loaded for %s\n",
+                __func__, __LINE__, l_vap_param_cfg->vap_array[i].vap_name);
+                } else {
+				wifi_util_info_print(WIFI_DB, "%s:%d: MJ VAP %s is not a Hotspot. Skipping preassoc/postassoc config.\n",
+                __func__, __LINE__, l_vap_param_cfg->vap_array[i].vap_name);
+				}	
             }
         }
 
