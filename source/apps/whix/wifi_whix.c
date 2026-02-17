@@ -1255,8 +1255,8 @@ void print_sta_client_telemetry_data(unsigned int num_devs, int vap_index, sta_d
 /**
  * @brief Calculate the difference between two counter values, handling wrap-around.
  *
- * This helper handles 32-bit counter wrap-around. When a counter wraps (current < previous),
- * it calculates the delta correctly assuming the counter wraps at UINT32_MAX.
+ * This helper handles 32-bit counter wrap-around. Uses unsigned arithmetic which
+ * naturally handles wrap-around correctly when the counter wraps at UINT32_MAX.
  *
  * @param current Current counter value
  * @param previous Previous counter value
@@ -1264,12 +1264,8 @@ void print_sta_client_telemetry_data(unsigned int num_devs, int vap_index, sta_d
  */
 static inline uint32_t calculate_counter_delta(uint32_t current, uint32_t previous)
 {
-    if (current >= previous) {
-        return current - previous;
-    } else {
-        // Counter wrapped around at 32-bit boundary
-        return (UINT32_MAX - previous) + current + 1;
-    }
+    // Unsigned arithmetic naturally handles wrap-around correctly
+    return current - previous;
 }
 
 int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigned int vap_index,
