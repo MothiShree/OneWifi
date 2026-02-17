@@ -1262,7 +1262,7 @@ void print_sta_client_telemetry_data(unsigned int num_devs, int vap_index, sta_d
  * @param previous Previous counter value
  * @return The difference between current and previous, accounting for wrap-around
  */
-static inline unsigned long calculate_counter_delta(unsigned long current, unsigned long previous)
+static inline uint32_t calculate_counter_delta(uint32_t current, uint32_t previous)
 {
     if (current >= previous) {
         return current - previous;
@@ -1296,7 +1296,6 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
     wifi_mgr_t *wifi_mgr = (wifi_mgr_t *)get_wifimgr_obj();
     hash_map_t *last_stats_map = app->data.u.whix.last_stats_map;
     wifi_associated_dev3_t *dev_stats_last = NULL;
-    unsigned long diff = 0, curr = 0, prev = 0;
 
     if (NULL == sta && num_devs != 0) {
         wifi_util_error_print(WIFI_APPS, "%s:%d sta is NULL and num_devs %u\n", __func__, __LINE__,
@@ -1680,10 +1679,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                 hash_map_put(app->data.u.whix.last_stats_map, strdup(sta_key), dev_stats_last);
             }
             if (sta[i].dev_stats.cli_Active == true) {
-                curr = sta[i].dev_stats.cli_BytesSent;
-                prev = dev_stats_last->cli_BytesSent;
-                diff = calculate_counter_delta(curr, prev);
-                snprintf(tmp, 32, "%lu,", diff);
+                uint32_t curr = sta[i].dev_stats.cli_BytesSent;
+                uint32_t prev = dev_stats_last->cli_BytesSent;
+                uint32_t diff = calculate_counter_delta(curr, prev);
+                snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
             }
         }
@@ -1704,10 +1703,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_BytesReceived;
-                    prev = dev_stats_last->cli_BytesReceived;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_BytesReceived;
+                    uint32_t prev = dev_stats_last->cli_BytesReceived;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
             }
@@ -1730,10 +1729,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_PacketsSent;
-                    prev = dev_stats_last->cli_PacketsSent;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_PacketsSent;
+                    uint32_t prev = dev_stats_last->cli_PacketsSent;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
                 strncat(telemetryBuff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
@@ -1764,10 +1763,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_PacketsReceived;
-                    prev = dev_stats_last->cli_PacketsReceived;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_PacketsReceived;
+                    uint32_t prev = dev_stats_last->cli_PacketsReceived;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
             }
@@ -1790,10 +1789,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_ErrorsSent;
-                    prev = dev_stats_last->cli_ErrorsSent;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_ErrorsSent;
+                    uint32_t prev = dev_stats_last->cli_ErrorsSent;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
                 strncat(telemetryBuff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
@@ -1824,10 +1823,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_RetransCount;
-                    prev = dev_stats_last->cli_RetransCount;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_RetransCount;
+                    uint32_t prev = dev_stats_last->cli_RetransCount;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
                 strncat(telemetryBuff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
@@ -1857,10 +1856,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_FailedRetransCount;
-                    prev = dev_stats_last->cli_FailedRetransCount;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_FailedRetransCount;
+                    uint32_t prev = dev_stats_last->cli_FailedRetransCount;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
             }
@@ -1882,10 +1881,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_RetryCount;
-                    prev = dev_stats_last->cli_RetryCount;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_RetryCount;
+                    uint32_t prev = dev_stats_last->cli_RetryCount;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
             }
@@ -1907,10 +1906,10 @@ int upload_client_telemetry_data(wifi_app_t *app, unsigned int num_devs, unsigne
                         __LINE__);
                     snprintf(tmp, 32, "%u,", 0);
                 } else {
-                    curr = sta[i].dev_stats.cli_MultipleRetryCount;
-                    prev = dev_stats_last->cli_MultipleRetryCount;
-                    diff = calculate_counter_delta(curr, prev);
-                    snprintf(tmp, 32, "%lu,", diff);
+                    uint32_t curr = sta[i].dev_stats.cli_MultipleRetryCount;
+                    uint32_t prev = dev_stats_last->cli_MultipleRetryCount;
+                    uint32_t diff = calculate_counter_delta(curr, prev);
+                    snprintf(tmp, 32, "%lu,", (unsigned long)diff);
                 }
                 strncat(buff, tmp, MAX_BUFF_SIZE - strlen(buff) - 1);
             }
