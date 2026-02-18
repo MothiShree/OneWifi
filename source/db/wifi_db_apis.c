@@ -1566,15 +1566,22 @@ void callback_Wifi_Preassoc_Control_Config(ovsdb_update_monitor_t *mon,
         snprintf(l_preassoc_ctrl_cfg->snr_threshold, sizeof(l_preassoc_ctrl_cfg->snr_threshold), "%s", new_rec->snr_threshold);
 
         snprintf(l_preassoc_ctrl_cfg->cu_threshold, sizeof(l_preassoc_ctrl_cfg->cu_threshold), "%s", new_rec->cu_threshold);
-
+        wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ basic_data_transmit_rates(old): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->basic_data_transmit_rates);
         snprintf(l_preassoc_ctrl_cfg->basic_data_transmit_rates, sizeof(l_preassoc_ctrl_cfg->basic_data_transmit_rates), "%s", new_rec->basic_data_transmit_rates);
+        wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ basic_data_transmit_rates(new): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->basic_data_transmit_rates);
 
+		wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ operational_data_transmit_rates(old): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->operational_data_transmit_rates);
         snprintf(l_preassoc_ctrl_cfg->operational_data_transmit_rates, sizeof(l_preassoc_ctrl_cfg->operational_data_transmit_rates), "%s", new_rec->operational_data_transmit_rates);
+        wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ operational_data_transmit_rates(new): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->operational_data_transmit_rates);
 
+		wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ supported_data_transmit_rates(old): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->supported_data_transmit_rates);
         snprintf(l_preassoc_ctrl_cfg->supported_data_transmit_rates, sizeof(l_preassoc_ctrl_cfg->supported_data_transmit_rates), "%s", new_rec->supported_data_transmit_rates);
+        wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ supported_data_transmit_rates(new): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->supported_data_transmit_rates);
 
+		wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ minimum_advertised_mcs(old): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->minimum_advertised_mcs);
         snprintf(l_preassoc_ctrl_cfg->minimum_advertised_mcs, sizeof(l_preassoc_ctrl_cfg->minimum_advertised_mcs), "%s", new_rec->minimum_advertised_mcs);
-
+        wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ minimum_advertised_mcs(new): %s", __func__, __LINE__, l_preassoc_ctrl_cfg->minimum_advertised_mcs);
+		
         snprintf(l_preassoc_ctrl_cfg->sixGOpInfoMinRate, sizeof(l_preassoc_ctrl_cfg->sixGOpInfoMinRate), "%s", new_rec->sixGOpInfoMinRate);
 
         l_preassoc_ctrl_cfg->time_ms = new_rec->time_ms;
@@ -2923,11 +2930,14 @@ int wifidb_get_preassoc_ctrl_config(char *vap_name, wifi_preassoc_control_t *pre
     strcpy(preassoc->vap_name, vap_name);
     strcpy(preassoc->rssi_up_threshold, pcfg->rssi_up_threshold);
     strcpy(preassoc->snr_threshold, pcfg->snr_threshold);
-    strcpy(preassoc->cu_threshold, pcfg->cu_threshold);
+	strcpy(preassoc->cu_threshold, pcfg->cu_threshold);
+	wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ pcfg->basic_data_transmit_rates: %s\n", __func__, __LINE__, pcfg->basic_data_transmit_rates);
     strcpy(preassoc->basic_data_transmit_rates, pcfg->basic_data_transmit_rates);
-    strcpy(preassoc->operational_data_transmit_rates, pcfg->operational_data_transmit_rates);
+	wifi_util_dbg_print(WIFI_DB,"%s:%d: MJ pcfg->operational_data_transmit_rates: %s\n", __func__, __LINE__, pcfg->operational_data_transmit_rates);
+    strcpy(preassoc->operational_data_transmit_rates, pcfg->operational_data_transmit_rates); 
+	wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ pcfg->supported_data_transmit_rates: %s\n", __func__, __LINE__, pcfg->supported_data_transmit_rates);
     strcpy(preassoc->supported_data_transmit_rates, pcfg->supported_data_transmit_rates);
-    strcpy(preassoc->minimum_advertised_mcs, pcfg->minimum_advertised_mcs);
+	wifi_util_dbg_print(WIFI_DB, "%s:%d: MJ pcfg->minimum_advertised_mcs: %s\n", __func__, __LINE__, pcfg->minimum_advertised_mcs);
     strcpy(preassoc->sixGOpInfoMinRate, pcfg->sixGOpInfoMinRate);
     preassoc->time_ms = pcfg->time_ms;
     preassoc->min_num_mgmt_frames = pcfg->min_num_mgmt_frames;
