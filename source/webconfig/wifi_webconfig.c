@@ -201,23 +201,37 @@ webconfig_error_t webconfig_set(webconfig_t *config, webconfig_subdoc_data_t *da
 
     if ((data->descriptor & webconfig_data_descriptor_decoded) == webconfig_data_descriptor_decoded) {
         if ((err = doc->translate_to_subdoc(config, data)) != webconfig_error_none) {
-            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: Subdocument translation failed\n", __func__, __LINE__);
+            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: MJ Subdocument translation failed\n", __func__, __LINE__);
         } else if ((err = doc->encode_subdoc(config, data)) != webconfig_error_none) {
-            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: Subdocument encode failed\n", __func__, __LINE__);
-        } else if ((data->descriptor = webconfig_data_descriptor_encoded)
-                    && (config->apply_data(doc, data)) != webconfig_error_none) {
-            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d Subdocument apply failed\n", __func__, __LINE__);
-            err = webconfig_error_apply;
+            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: MJ Subdocument encode failed\n", __func__, __LINE__);
+        } else {
+
+            /* Mark as encoded AFTER successful encode */
+            data->descriptor = webconfig_data_descriptor_encoded;
+
+            if ((err = config->apply_data(doc, data)) != webconfig_error_none) {
+                wifi_util_error_print(WIFI_WEBCONFIG,
+                    "%s:%d MJ Subdocument apply failed\n",
+                    __func__, __LINE__);
+                err = webconfig_error_apply;
+            }
         }
     } else if ((data->descriptor & webconfig_data_descriptor_encoded) == webconfig_data_descriptor_encoded) {
         if ((err = doc->decode_subdoc(config, data)) != webconfig_error_none) {
-            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: Subdocument decode failed\n", __func__, __LINE__);
+            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: MJ Subdocument decode failed\n", __func__, __LINE__);
         } else if ((err = doc->translate_from_subdoc(config, data)) != webconfig_error_none) {
-            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: Subdocument translation failed\n", __func__, __LINE__);
-        } else if ((data->descriptor = webconfig_data_descriptor_decoded)
-                    && (config->apply_data(doc, data)) != webconfig_error_none) {
-            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d Subdocument apply failed\n", __func__, __LINE__);
-            err = webconfig_error_apply;
+            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: MJ Subdocument translation failed\n", __func__, __LINE__);
+        } else {
+
+            /* Mark as decoded AFTER successful decode */
+            data->descriptor = webconfig_data_descriptor_decoded;
+
+            if ((err = config->apply_data(doc, data)) != webconfig_error_none) {
+                wifi_util_error_print(WIFI_WEBCONFIG,
+                    "%s:%d MJ Subdocument apply failed\n",
+                    __func__, __LINE__);
+                err = webconfig_error_apply;
+            }
         }
     }
 
