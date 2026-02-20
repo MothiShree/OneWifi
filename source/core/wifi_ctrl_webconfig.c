@@ -2591,7 +2591,9 @@ webconfig_error_t webconfig_ctrl_apply(webconfig_subdoc_t *doc, webconfig_subdoc
 
     wifi_util_info_print(WIFI_WEBCONFIG, "%s:%d: webconfig_state:%02x doc_type:%d doc_name:%s\n", 
             __func__, __LINE__, ctrl->webconfig_state, doc->type, doc->name);
-
+    wifi_util_info_print(WIFI_WEBCONFIG,
+    "CTRL apply descriptor = 0x%x\n",
+    data->descriptor);
     switch (doc->type) {
         case webconfig_subdoc_type_unknown:
             wifi_util_error_print(WIFI_MGR, "%s:%d: Unknown webconfig subdoc\n", __func__, __LINE__);
