@@ -2884,7 +2884,9 @@ int wifidb_update_preassoc_ctrl_config(char *vap_name, wifi_preassoc_control_t *
     strcpy(cfg.snr_threshold, preassoc->snr_threshold);
     strcpy(cfg.cu_threshold, preassoc->cu_threshold);
     strcpy(cfg.basic_data_transmit_rates, preassoc->basic_data_transmit_rates);
+	wifidb_print("%s:%d MJ basic_data_transmit_rates copied: %s", __func__, __LINE__, cfg.basic_data_transmit_rates);
     strcpy(cfg.operational_data_transmit_rates, preassoc->operational_data_transmit_rates);
+wifidb_print("%s:%d MJ operational_data_transmit_rates copied: %s", __func__, __LINE__, cfg.operational_data_transmit_rates);
     strcpy(cfg.supported_data_transmit_rates, preassoc->supported_data_transmit_rates);
     strcpy(cfg.minimum_advertised_mcs, preassoc->minimum_advertised_mcs);
     strcpy(cfg.sixGOpInfoMinRate, preassoc->sixGOpInfoMinRate);
