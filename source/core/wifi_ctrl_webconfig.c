@@ -1188,7 +1188,7 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
              * 2. MAC is updated by ow_core_update_vap_mac for XE2. Currently, schema_Wifi_VAP_Config doesn't have mac field
              * So, it won't be updated within update_fn -> wifidb_update_wifi_vap_info. Thats the reason why I leaved memcpy here. 
              */
-            memcpy(mgr_vap_info, &p_tgt_vap_map->vap_array[0], sizeof(wifi_vap_info_t));
+            //memcpy(mgr_vap_info, &p_tgt_vap_map->vap_array[0], sizeof(wifi_vap_info_t));
 
             // This block of code is only used for updating VAP mac.
             //if (vap_info->vap_mode == wifi_vap_mode_ap && is_bssid_valid(p_tgt_vap_map->vap_array[0].u.bss_info.bssid)) {
