@@ -196,7 +196,7 @@ int sort_bss_results_by_ranking(bss_candidate_t *scan_list, int count)
         }
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d Scan-count : %d Ignite Threshold Values [ %s %f %f %f %f]\n", __func__, __LINE__, count, mgr->ignite_config[radio_index].ignite_name, mgr->ignite_config[radio_index].min_chanutil_threshold ,mgr->ignite_config[radio_index].max_chanutil_threshold ,mgr->ignite_config[radio_index].SNR_threshold ,mgr->ignite_config[radio_index].SNR_difference);
 
-        ignite_config = &mgr->ignite_config[radio_index];
+    ignite_config = &mgr->ignite_config[radio_index];
         float chan_util = (float)scan_list[i].external_ap.chan_utilization;
         float snr = (float)scan_list[i].external_ap.snr;
 
@@ -220,7 +220,6 @@ int sort_bss_results_by_ranking(bss_candidate_t *scan_list, int count)
         scores[valid_count].bucket = (chan_util < ignite_config->min_chanutil_threshold) ? 1 : 2;
         scores[valid_count].score = snr - (chutil_weighting_factor * chan_util);
 
-	    wifi_util_dbg_print(WIFI_CTRL, "[%s %d] BSSID : %s SNR : %f chan-util : %.2f bucket : %d score : %f", __func__, __LINE__, to_mac_str(scan_list[i].external_ap.bssid, bssid_str), snr, chan_util, scores[valid_count].bucket,  scores[valid_count].score);
     // Track max SNR in bucket 1
         if (scores[valid_count].bucket == 1 && snr > max_bucket1_snr) {
             max_bucket1_snr = snr;
@@ -239,7 +238,7 @@ int sort_bss_results_by_ranking(bss_candidate_t *scan_list, int count)
     for (int i = 0; i < valid_count; i++) {
         float snr_diff = 0.0;
         if (scores[i].bucket == 2) {
-            int radio_index = 0;
+        int radio_index = 0;
             if (convert_freq_band_to_radio_index(scan_list[i].external_ap.oper_freq_band,
                     &radio_index) == RETURN_ERR) {
                 wifi_util_error_print(WIFI_CTRL, "%s:%d: Failed to get radio index for band %d\n",
