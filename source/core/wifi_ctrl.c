@@ -1105,9 +1105,7 @@ int scan_results_callback(int radio_index, wifi_bss_info_t **bss, unsigned int *
 
     res->radio_index = radio_index;
     res->num = *num;
-    if (*num > 0 && *bss != NULL) {
-        memcpy((unsigned char *)res->bss, (unsigned char *)(*bss), (*num)*sizeof(wifi_bss_info_t));
-    }
+    memcpy((unsigned char *)res->bss, (unsigned char *)(*bss), (*num)*sizeof(wifi_bss_info_t));
 
     if (is_sta_enabled()) {
         if(push_event_to_ctrl_queue(res, sizeof(scan_results_t), wifi_event_type_hal_ind,
