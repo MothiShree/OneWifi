@@ -5336,14 +5336,8 @@ bool pre_conn_ctrl_set_param_string_value(void *obj_ins_context, char *param_nam
         } else if (STR_CMP(p_input_str, "disabled")) {
             STR_COPY(p_dm_pre_assoc->sixGOpInfoMinRate, "disabled");
         } else {
-<<<<<<< HEAD
             STR_COPY(p_dm_pre_assoc->sixGOpInfoMinRate, p_input_str);
         }
-        set_cac_cache_changed(instance_number - 1);
-=======
-	    STR_COPY(p_dm_pre_assoc->sixGOpInfoMinRate, p_input_str);
-	}
->>>>>>> 4761536 (TCXB8-3951, RDKB-63506: [Auto][Sprint] Incorrect BasicDataTransmitRates (MBR) value shows in OVSH table (#936))
         set_dml_cache_vap_config_changed(instance_number - 1);
     } else {
         wifi_util_info_print(WIFI_DMCLI, "%s:%d: unsupported param name:%s\n", __func__, __LINE__,
