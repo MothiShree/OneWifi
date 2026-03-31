@@ -10644,6 +10644,14 @@ PreAssocDeny_SetParamStringValue
     wifi_vap_info_t *pcfg = (wifi_vap_info_t *)hInsContext;
     int val;
     int ret;
+	wifi_util_error_print(
+    WIFI_DMCLI,
+    "%s:%d MJ hInsContext=%p, ParamName=%s, pString=%s\n",
+    __FUNCTION__,
+    __LINE__,
+    hInsContext,
+    (ParamName != NULL) ? ParamName : "NULL",
+    (pString != NULL) ? pString : "NULL");
     if (pcfg == NULL)
     {
         wifi_util_dbg_print(WIFI_DMCLI,"%s:%d Null pointer get fail\n", __FUNCTION__,__LINE__);
