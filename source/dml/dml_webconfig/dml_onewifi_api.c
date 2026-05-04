@@ -1730,50 +1730,62 @@ instant_measurement_config_t* get_dml_harvester(void)
 
 int push_harvester_dml_cache_to_one_wifidb()
 {
-    if(webconfig_dml.harvester.b_inst_client_enabled == true){
-        webconfig_subdoc_data_t *data = NULL;
-        char *str = NULL;
-        data = malloc(sizeof(webconfig_subdoc_data_t));
-        if (!data) {
-            wifi_util_error_print(WIFI_DMCLI, "%s:%d:Failed to allocate memory\n", __func__, __LINE__);
-            return RETURN_ERR;
-        }
-        memset(data, 0, sizeof(webconfig_subdoc_data_t));
-        memcpy((unsigned char *)&data->u.decoded.harvester, (unsigned char *)&webconfig_dml.harvester, sizeof(instant_measurement_config_t));
-        memcpy((unsigned char *)&data->u.decoded.hal_cap, (unsigned char *)&webconfig_dml.hal_cap, sizeof(wifi_hal_capability_t));
+    webconfig_subdoc_data_t *data = NULL;
+    char *str = NULL;
 
-        if (webconfig_encode(&webconfig_dml.webconfig, data, webconfig_subdoc_type_harvester) == webconfig_error_none) {
-            str = data->u.encoded.raw;
-            wifi_util_info_print(WIFI_DMCLI, "%s:  Harvester DML cache encoded successfully  \n", __FUNCTION__);
-            push_event_to_ctrl_queue(str, strlen(str), wifi_event_type_webconfig, wifi_event_webconfig_set_data_dml, NULL);
-        } else {
-            wifi_util_error_print(WIFI_DMCLI, "%s:%d: Webconfig set failed, update data from ctrl queue\n", __func__, __LINE__);
-            request_for_dml_data_resync();
-        }
-        wifi_util_info_print(WIFI_DMCLI, "%s:  Harvester DML cache pushed to queue \n", __FUNCTION__);
+    /* Snapshot the value the caller just set so we can restore it after the
+     * one-shot parameter reset below.  This ensures GetParamBoolValue reflects
+     * whatever was actually configured (true OR false), rather than reverting
+     * to a hardcoded or stale default.
+     */
+    bool b_enabled = webconfig_dml.harvester.b_inst_client_enabled;
 
-        /* FIX: After a successful push of the instant-measurement enable trigger,
-         * reset the one-shot parameters (ReportingPeriod, TTL, MAC) back to
-         * their persisted defaults.  Do NOT reset b_inst_client_enabled to the
-         * stale global default (which is false) — that was the root cause of
-         * GetParamBoolValue always returning false after a successful set.
-         * Keep b_inst_client_enabled = true and update global_parameters so
-         * subsequent reloads stay consistent.
-         */
-        webconfig_dml.harvester.b_inst_client_enabled = true;
-        webconfig_dml.config.global_parameters.inst_wifi_client_enabled = true;
-        webconfig_dml.harvester.u_inst_client_reporting_period = webconfig_dml.config.global_parameters.inst_wifi_client_reporting_period;
-        webconfig_dml.harvester.u_inst_client_def_reporting_period = webconfig_dml.config.global_parameters.inst_wifi_client_def_reporting_period;
-        webconfig_dml.harvester.u_inst_client_def_override_ttl = 0;
-        snprintf(webconfig_dml.harvester.mac_address, sizeof(webconfig_dml.harvester.mac_address), "%02x%02x%02x%02x%02x%02x",
-                webconfig_dml.config.global_parameters.inst_wifi_client_mac[0], webconfig_dml.config.global_parameters.inst_wifi_client_mac[1],
-                webconfig_dml.config.global_parameters.inst_wifi_client_mac[2], webconfig_dml.config.global_parameters.inst_wifi_client_mac[3],
-                webconfig_dml.config.global_parameters.inst_wifi_client_mac[4], webconfig_dml.config.global_parameters.inst_wifi_client_mac[5]);
-
-        webconfig_data_free(data);
-        free(data);
-        data = NULL;
+    /* Always push to the ctrl queue — both enable and disable transitions
+     * must reach the Harvester thread so it can start/stop reporting.
+     */
+    data = malloc(sizeof(webconfig_subdoc_data_t));
+    if (!data) {
+        wifi_util_error_print(WIFI_DMCLI, "%s:%d:Failed to allocate memory\n", __func__, __LINE__);
+        return RETURN_ERR;
     }
+    memset(data, 0, sizeof(webconfig_subdoc_data_t));
+    memcpy((unsigned char *)&data->u.decoded.harvester, (unsigned char *)&webconfig_dml.harvester, sizeof(instant_measurement_config_t));
+    memcpy((unsigned char *)&data->u.decoded.hal_cap, (unsigned char *)&webconfig_dml.hal_cap, sizeof(wifi_hal_capability_t));
+
+    if (webconfig_encode(&webconfig_dml.webconfig, data, webconfig_subdoc_type_harvester) == webconfig_error_none) {
+        str = data->u.encoded.raw;
+        wifi_util_info_print(WIFI_DMCLI, "%s:  Harvester DML cache encoded successfully  \n", __FUNCTION__);
+        push_event_to_ctrl_queue(str, strlen(str), wifi_event_type_webconfig, wifi_event_webconfig_set_data_dml, NULL);
+    } else {
+        wifi_util_error_print(WIFI_DMCLI, "%s:%d: Webconfig set failed, update data from ctrl queue\n", __func__, __LINE__);
+        request_for_dml_data_resync();
+    }
+    wifi_util_info_print(WIFI_DMCLI, "%s:  Harvester DML cache pushed to queue \n", __FUNCTION__);
+
+    /* Reset one-shot trigger fields (ReportingPeriod, TTL, MAC) back to their
+     * persisted defaults, then write back the snapshotted b_enabled value so
+     * that a subsequent GetParamBoolValue call returns the correct state.
+     * Also keep global_parameters in sync so future reloads are consistent.
+     */
+    webconfig_dml.harvester.u_inst_client_reporting_period = webconfig_dml.config.global_parameters.inst_wifi_client_reporting_period;
+    webconfig_dml.harvester.u_inst_client_def_reporting_period = webconfig_dml.config.global_parameters.inst_wifi_client_def_reporting_period;
+    webconfig_dml.harvester.u_inst_client_def_override_ttl = 0;
+    snprintf(webconfig_dml.harvester.mac_address, sizeof(webconfig_dml.harvester.mac_address), "%02x%02x%02x%02x%02x%02x",
+            webconfig_dml.config.global_parameters.inst_wifi_client_mac[0], webconfig_dml.config.global_parameters.inst_wifi_client_mac[1],
+            webconfig_dml.config.global_parameters.inst_wifi_client_mac[2], webconfig_dml.config.global_parameters.inst_wifi_client_mac[3],
+            webconfig_dml.config.global_parameters.inst_wifi_client_mac[4], webconfig_dml.config.global_parameters.inst_wifi_client_mac[5]);
+
+    /* Restore the snapshotted enabled state — NOT hardcoded, NOT the stale default */
+    webconfig_dml.harvester.b_inst_client_enabled = b_enabled;
+    webconfig_dml.config.global_parameters.inst_wifi_client_enabled = b_enabled;
+
+    wifi_util_info_print(WIFI_DMCLI, "%s: WifiClient Enabled=%d committed to DML and ctrl queue\n",
+                         __FUNCTION__, b_enabled);
+
+    webconfig_data_free(data);
+    free(data);
+    data = NULL;
+
     return RETURN_OK;
 }
 
