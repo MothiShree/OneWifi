@@ -1752,14 +1752,22 @@ int push_harvester_dml_cache_to_one_wifidb()
         }
         wifi_util_info_print(WIFI_DMCLI, "%s:  Harvester DML cache pushed to queue \n", __FUNCTION__);
 
-        //Rest to default value since instant measurement enable is triggered successfully
-        webconfig_dml.harvester.b_inst_client_enabled = webconfig_dml.config.global_parameters.inst_wifi_client_enabled;
+        /* FIX: After a successful push of the instant-measurement enable trigger,
+         * reset the one-shot parameters (ReportingPeriod, TTL, MAC) back to
+         * their persisted defaults.  Do NOT reset b_inst_client_enabled to the
+         * stale global default (which is false) — that was the root cause of
+         * GetParamBoolValue always returning false after a successful set.
+         * Keep b_inst_client_enabled = true and update global_parameters so
+         * subsequent reloads stay consistent.
+         */
+        webconfig_dml.harvester.b_inst_client_enabled = true;
+        webconfig_dml.config.global_parameters.inst_wifi_client_enabled = true;
         webconfig_dml.harvester.u_inst_client_reporting_period = webconfig_dml.config.global_parameters.inst_wifi_client_reporting_period;
         webconfig_dml.harvester.u_inst_client_def_reporting_period = webconfig_dml.config.global_parameters.inst_wifi_client_def_reporting_period;
         webconfig_dml.harvester.u_inst_client_def_override_ttl = 0;
         snprintf(webconfig_dml.harvester.mac_address, sizeof(webconfig_dml.harvester.mac_address), "%02x%02x%02x%02x%02x%02x",
-                webconfig_dml.config.global_parameters.inst_wifi_client_mac[0], webconfig_dml.config.global_parameters.inst_wifi_client_mac[1], 
-                webconfig_dml.config.global_parameters.inst_wifi_client_mac[2], webconfig_dml.config.global_parameters.inst_wifi_client_mac[3], 
+                webconfig_dml.config.global_parameters.inst_wifi_client_mac[0], webconfig_dml.config.global_parameters.inst_wifi_client_mac[1],
+                webconfig_dml.config.global_parameters.inst_wifi_client_mac[2], webconfig_dml.config.global_parameters.inst_wifi_client_mac[3],
                 webconfig_dml.config.global_parameters.inst_wifi_client_mac[4], webconfig_dml.config.global_parameters.inst_wifi_client_mac[5]);
 
         webconfig_data_free(data);

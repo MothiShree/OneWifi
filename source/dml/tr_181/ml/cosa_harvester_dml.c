@@ -314,13 +314,39 @@ WifiClient_SetParamStringValue
 
     if( AnscEqualString(ParamName, "MacAddress", TRUE))
     {
-        if (validate_inst_client_mac(pValue)){
-            strncpy(pcfg->mac_address, pValue, sizeof(pcfg->mac_address)-1);
+        /* FIX: Normalize MAC format. validate_inst_client_mac() requires a
+         * 12-char no-colon string (e.g. "aabbccddeeff"). Users and WEBPA may
+         * supply the colon-separated form "aa:bb:cc:dd:ee:ff" (17 chars).
+         * Strip colons so both formats are accepted by the validator.
+         */
+        char normalized_mac[MAC_ADDRESS_LENGTH];  /* MAC_ADDRESS_LENGTH = 13 */
+        memset(normalized_mac, 0, sizeof(normalized_mac));
+
+        if (strlen(pValue) == 17 && pValue[2] == ':') {
+            /* Colon-separated format — strip colons */
+            int j = 0;
+            for (int i = 0; i < 17 && j < (int)(sizeof(normalized_mac) - 1); i++) {
+                if (pValue[i] != ':') {
+                    normalized_mac[j++] = tolower((unsigned char)pValue[i]);
+                }
+            }
+            wifi_util_dbg_print(WIFI_DMCLI,
+                "%s:%d Normalized MAC from '%s' to '%s'\n",
+                __FUNCTION__, __LINE__, pValue, normalized_mac);
+        } else {
+            strncpy(normalized_mac, pValue, sizeof(normalized_mac) - 1);
+        }
+
+        if (validate_inst_client_mac(normalized_mac)) {
+            strncpy(pcfg->mac_address, normalized_mac, sizeof(pcfg->mac_address) - 1);
             return TRUE;
-        }else{
+        } else {
+            wifi_util_error_print(WIFI_DMCLI,
+                "%s:%d Invalid MacAddress '%s' (normalized: '%s'). "
+                "Expected 12 hex chars, no colons, non-zero.\n",
+                __FUNCTION__, __LINE__, pValue, normalized_mac);
             return FALSE;
         }
-	return TRUE;
     }
 
     return FALSE;
