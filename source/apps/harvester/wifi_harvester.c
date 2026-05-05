@@ -603,7 +603,16 @@ void upload_single_client_msmt_data(sta_data_t *sta_info)
 
 void process_instant_msmt_monitor(wifi_provider_response_t *provider_response)
 {
-    if (g_harvester_module.count >= g_harvester_module.maxCount) {
+   wifi_util_dbg_print(WIFI_HARVESTER,
+        "%s:%d MJ count=%d maxCount=%d TTL=%d poll=%d enable=%d\n",
+        __func__, __LINE__,
+        g_harvester_module.count,
+        g_harvester_module.maxCount,
+        g_harvester_module.instantDefOverrideTTL,
+        g_harvester_module.poll_period,
+        g_harvester_module.instntMsmtenable);
+ 
+   if (g_harvester_module.count >= g_harvester_module.maxCount) {
         wifi_util_dbg_print(WIFI_HARVESTER, "%s:%d: instant polling freq reached threshold\n", __func__, __LINE__);
         g_harvester_module.instantDefOverrideTTL = DEFAULT_INSTANT_REPORT_TIME;
         g_harvester_module.instntMsmtenable = false;
