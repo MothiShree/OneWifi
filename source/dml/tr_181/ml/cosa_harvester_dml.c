@@ -140,6 +140,17 @@ WifiClient_GetParamBoolValue
         wifi_util_dbg_print(WIFI_DMCLI,"%s:%d  NULL pointer Get fail\n", __FUNCTION__,__LINE__);
         return FALSE;
     }
+	
+wifi_util_dbg_print(
+        WIFI_DMCLI,
+        "%s:%d MJ Enabled=%d, PollingPeriod=%u, TTL=%u\n",
+        __FUNCTION__,
+        __LINE__,
+        pcfg->b_inst_client_enabled,
+        pcfg->u_inst_client_reporting_period,
+        pcfg->u_inst_client_def_override_ttl
+    );
+
     if ( AnscEqualString(ParamName, "Enabled", TRUE))
     {
         *pBool = pcfg->b_inst_client_enabled;
@@ -251,14 +262,47 @@ WifiClient_SetParamBoolValue
 
     if ( AnscEqualString(ParamName, "Enabled", TRUE))
     {
+		
+wifi_util_dbg_print(
+        WIFI_DMCLI,
+        "%s:%d MJ Enabled=%d, PollingPeriod=%u, TTL=%u\n",
+        __FUNCTION__,
+        __LINE__,
+        bValue,
+        pcfg->u_inst_client_reporting_period,
+        pcfg->u_inst_client_def_override_ttl
+    );
+
         if((bValue == true) &&
                (pcfg->u_inst_client_reporting_period > pcfg->u_inst_client_def_override_ttl))
         {
+			
+wifi_util_dbg_print(
+        WIFI_DMCLI,
+        "%s:%d MJ Enabled=%d, PollingPeriod=%u, TTL=%u\n",
+        __FUNCTION__,
+        __LINE__,
+        bValue,
+        pcfg->u_inst_client_reporting_period,
+        pcfg->u_inst_client_def_override_ttl
+    );
+
              AnscTraceWarning(("Can not start report when PollingPeriod > TTL\n"));
              return FALSE;
         }
 
         pcfg->b_inst_client_enabled = bValue;
+		
+wifi_util_dbg_print(
+        WIFI_DMCLI,
+        "%s:%d MJ Enabled=%d, PollingPeriod=%u, TTL=%u\n",
+        __FUNCTION__,
+        __LINE__,
+        bValue,
+        pcfg->u_inst_client_reporting_period,
+        pcfg->u_inst_client_def_override_ttl
+    );
+
         return TRUE;
     }
 
