@@ -703,7 +703,12 @@ void process_instant_msmt_stop()
 
 void process_instant_msmt_start()
 {
-    wifi_monitor_data_t *data;
+  wifi_util_dbg_print(WIFI_HARVESTER,
+        "%s:%d MJ START: TTL=%d poll=%d enable=%d\n", __func__, __LINE__,
+        g_harvester_module.instantDefOverrideTTL,
+        g_harvester_module.instantPollPeriod,
+        g_harvester_module.instntMsmtenable);  
+  wifi_monitor_data_t *data;
     data = (wifi_monitor_data_t *) malloc(sizeof(wifi_monitor_data_t));
     if (data == NULL) {
         wifi_util_error_print(WIFI_HARVESTER,"%s:%d data allocation failed\r\n", __func__, __LINE__);
@@ -743,6 +748,12 @@ void monitor_enable_instant_msmt(mac_address_t sta_mac, bool enable)
 
     to_sta_key(sta_mac, sta);
     wifi_util_dbg_print(WIFI_HARVESTER, "%s:%d: instant measurements %s for sta:%s\n", __func__, __LINE__, (enable == true)?"start":"stop", sta);
+    wifi_util_dbg_print(WIFI_HARVESTER,
+    "%s:%d MJ ENABLE: enable=%d TTL=%d poll=%d active=%d\n", __func__, __LINE__,
+    enable,
+    g_harvester_module.instantDefOverrideTTL,
+    g_harvester_module.instantPollPeriod,
+    g_harvester_module.inst_msmt.active);
 
     g_harvester_module.instntMsmtenable = enable;
     pthread_mutex_lock(&g_harvester_module.queue_lock);
@@ -839,10 +850,17 @@ void instant_msmt_ttl(int overrideTTL)
 
     wifi_util_dbg_print(WIFI_HARVESTER, "%s:%d: TTL changed\n", __func__, __LINE__);
     g_harvester_module.instantDefOverrideTTL = overrideTTL;
+    wifi_util_dbg_print(WIFI_HARVESTER,
+    "%s:%d MJ TTL SET: overrideTTL=%d runtimeTTL=%d\n", __func__, __LINE__,
+    overrideTTL,
+    g_harvester_module.instantDefOverrideTTL);
 
     if (g_harvester_module.instantPollPeriod == 0)
         return;
-
+    wifi_util_dbg_print(WIFI_HARVESTER,
+        "%s:%d MJ POLL SET: poll=%d TTL=%d\n", __func__, __LINE__,
+        pollPeriod,
+        g_harvester_module.instantDefOverrideTTL);
     pthread_mutex_lock(&g_harvester_module.queue_lock);
 
     if (overrideTTL == 0) {
