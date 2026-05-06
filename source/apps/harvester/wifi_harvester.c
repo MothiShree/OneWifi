@@ -859,7 +859,7 @@ void instant_msmt_ttl(int overrideTTL)
         return;
     wifi_util_dbg_print(WIFI_HARVESTER,
         "%s:%d MJ POLL SET: poll=%d TTL=%d\n", __func__, __LINE__,
-        pollPeriod,
+        g_harvester_module.instantPollPeriod,
         g_harvester_module.instantDefOverrideTTL);
     pthread_mutex_lock(&g_harvester_module.queue_lock);
 
