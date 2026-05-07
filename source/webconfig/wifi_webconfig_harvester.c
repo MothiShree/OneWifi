@@ -95,7 +95,7 @@ webconfig_error_t encode_harvester_subdoc(webconfig_t *config, webconfig_subdoc_
     }
 
     memcpy(data->u.encoded.raw, str, strlen(str));
-    // wifi_util_dbg_print(WIFI_WEBCONFIG, "%s:%d: Encoded JSON:\n%s\n", __func__, __LINE__, data->u.encoded.raw);
+    wifi_util_dbg_print(WIFI_WEBCONFIG, "%s:%d: MJ Encoded JSON:\n%s\n", __func__, __LINE__, data->u.encoded.raw);
     cJSON_free(str);
     cJSON_Delete(json);
     wifi_util_info_print(WIFI_WEBCONFIG, "%s:%d: encode success\n", __func__, __LINE__);
