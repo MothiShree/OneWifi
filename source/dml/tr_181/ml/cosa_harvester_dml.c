@@ -279,7 +279,7 @@ wifi_util_dbg_print(
 			
 wifi_util_dbg_print(
         WIFI_DMCLI,
-        "%s:%d MJ Enabled=%d, PollingPeriod=%u, TTL=%u\n",
+        "%s:%d MJ 1 Enabled=%d, PollingPeriod=%u, TTL=%u\n",
         __FUNCTION__,
         __LINE__,
         bValue,
@@ -287,7 +287,7 @@ wifi_util_dbg_print(
         pcfg->u_inst_client_def_override_ttl
     );
 
-             AnscTraceWarning(("Can not start report when PollingPeriod > TTL\n"));
+             wifi_util_error_print(WIFI_DMCLI, "%s:%d:MJ  not start report when PollingPeriod > TTL\n", __FUNCTION__, __LINE__);
              return FALSE;
         }
 
@@ -295,7 +295,7 @@ wifi_util_dbg_print(
 		
 wifi_util_dbg_print(
         WIFI_DMCLI,
-        "%s:%d MJ Enabled=%d, PollingPeriod=%u, TTL=%u\n",
+        "%s:%d MJ 2 Enabled=%d, PollingPeriod=%u, TTL=%u\n",
         __FUNCTION__,
         __LINE__,
         bValue,

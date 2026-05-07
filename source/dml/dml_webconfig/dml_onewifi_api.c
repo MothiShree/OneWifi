@@ -1764,7 +1764,7 @@ int push_harvester_dml_cache_to_one_wifidb()
                 webconfig_dml.config.global_parameters.inst_wifi_client_mac[0], webconfig_dml.config.global_parameters.inst_wifi_client_mac[1], 
                 webconfig_dml.config.global_parameters.inst_wifi_client_mac[2], webconfig_dml.config.global_parameters.inst_wifi_client_mac[3], 
                 webconfig_dml.config.global_parameters.inst_wifi_client_mac[4], webconfig_dml.config.global_parameters.inst_wifi_client_mac[5]);
-
+        wifi_util_dbg_print(WIFI_DMCLI, "%s:%d:MJ  pushing harvester config to queue, reset harvester config to default, mac_address:%s, b_inst_client_enabled:%d, u_inst_client_reporting_period:%d, u_inst_client_def_reporting_period:%d\n", __func__, __LINE__, webconfig_dml.harvester.mac_address, webconfig_dml.harvester.b_inst_client_enabled, webconfig_dml.harvester.u_inst_client_reporting_period, webconfig_dml.harvester.u_inst_client_def_reporting_period);
         webconfig_data_free(data);
         free(data);
         data = NULL;

@@ -6006,6 +6006,7 @@ bool wifi_client_report_set_param_bool_value(void *obj_ins_context, char *param_
         }
 
         p_dml_harvester->b_inst_client_enabled = output_value;
+        wifi_util_dbg_print(WIFI_DMCLI, "%s:%d: MJ Harvester Enabled %d\n", __func__, __LINE__, p_dml_harvester->b_inst_client_enabled);
         push_harvester_dml_cache_to_one_wifidb();
     } else {
         wifi_util_info_print(WIFI_DMCLI, "%s:%d: unsupported param name:%s\n", __func__, __LINE__,

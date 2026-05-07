@@ -4601,6 +4601,7 @@ webconfig_error_t decode_harvester_object(const cJSON *obj, instant_measurement_
 
     decode_param_bool(obj, "Enabled", param);
     harvester->b_inst_client_enabled = (param->type & cJSON_True) ? true:false;
+    wifi_util_dbg_print(WIFI_WEBCONFIG, "%s:%d: MJ Harvester Enabled %d\n", __func__, __LINE__, harvester->b_inst_client_enabled);
     decode_param_string(obj, "MacAddress", param);
     strcpy(harvester->mac_address, param->valuestring);
     decode_param_integer(obj, "ReportingPeriod", param);
