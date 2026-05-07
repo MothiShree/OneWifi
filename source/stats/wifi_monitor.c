@@ -3944,6 +3944,7 @@ int device_associated(int ap_index, wifi_associated_dev_t *associated_dev)
     assoc_data.dev_stats.cli_MaxRSSI = associated_dev->cli_MaxRSSI;
     assoc_data.dev_stats.cli_Disassociations = associated_dev->cli_Disassociations;
     assoc_data.dev_stats.cli_AuthenticationFailures = associated_dev->cli_AuthenticationFailures;
+	wifi_util_dbg_print(WIFI_MON, "%s:%d MJ operating standard is %d \n", __func__, __LINE__,associated_dev->cli_CapableNumSpatialStreams);
     snprintf(assoc_data.dev_stats.cli_OperatingStandard, sizeof(assoc_data.dev_stats.cli_OperatingStandard),"%s", associated_dev->cli_OperatingStandard);
     snprintf(assoc_data.dev_stats.cli_OperatingChannelBandwidth, sizeof(assoc_data.dev_stats.cli_OperatingChannelBandwidth),"%s", associated_dev->cli_OperatingChannelBandwidth);
     snprintf(assoc_data.dev_stats.cli_InterferenceSources, sizeof(assoc_data.dev_stats.cli_InterferenceSources),"%s", associated_dev->cli_InterferenceSources);
