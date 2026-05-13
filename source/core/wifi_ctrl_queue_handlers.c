@@ -2379,6 +2379,8 @@ static void assoc_dev_event(assoc_dev_data_t *assoc_data)
     }
 
     tmp_assoc_dev_data = hash_map_get(rdk_vap_info->associated_devices_map, mac_str);
+    wifi_util_dbg_print(WIFI_CTRL,"MJ %s:%d vap_index: %d MAC: %s is MLD %d\n",
+        __func__, __LINE__, rdk_vap_info->vap_index, mac_str, assoc_data->mld_info.cli_MLDSta);
     if (tmp_assoc_dev_data == NULL) {
         old_count = hash_map_count(rdk_vap_info->associated_devices_map);
         tmp_assoc_dev_data = (assoc_dev_data_t *)malloc(sizeof(assoc_dev_data_t));
@@ -2389,6 +2391,7 @@ static void assoc_dev_event(assoc_dev_data_t *assoc_data)
         }
         memcpy(tmp_assoc_dev_data, assoc_data, sizeof(assoc_dev_data_t));
         tmp_assoc_dev_data->client_state = client_state_connected;
+        wifi_util_dbg_print(WIFI_CTRL,"MJ Adding MAC %s to vap_index %d associated_devices_map\n", mac_str, rdk_vap_info->vap_index);
         if (add_client_diff_assoclist(&rdk_vap_info->associated_devices_diff_map, mac_str, tmp_assoc_dev_data) == RETURN_ERR) {
             pthread_mutex_unlock(rdk_vap_info->associated_devices_lock);
             wifi_util_error_print(WIFI_CTRL,"%s:%d Failed to update diff assoclist for vap %d mac_str : %s\n", __func__, __LINE__, rdk_vap_info->vap_index, mac_str);
@@ -2397,6 +2400,7 @@ static void assoc_dev_event(assoc_dev_data_t *assoc_data)
         }
         str_tolower(mac_str);
         hash_map_put(rdk_vap_info->associated_devices_map, strdup(mac_str), tmp_assoc_dev_data);
+        wifi_util_dbg_print(WIFI_CTRL,"MJ Added MAC %s to vap_index %d associated_devices_map mac_str: %s \n", mac_str, rdk_vap_info->vap_index, mac_str);
         p_wifi_mgr->ctrl.webconfig_state |= ctrl_webconfig_state_associated_clients_cfg_rsp_pending;
         new_count = old_count + 1;
         wifi_util_info_print(WIFI_CTRL,"%s:%d Device %s associated with vapindex %d associated clients count : %d\n", __func__, __LINE__, mac_str, rdk_vap_info->vap_index, new_count);

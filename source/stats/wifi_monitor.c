@@ -470,6 +470,7 @@ int set_auth_req_frame_data(frame_data_t *msg) {
         return RETURN_ERR;
     }
     sta_map_count = (int)hash_map_count(sta_map);
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d sta_map_count:%d \r\n", __func__, __LINE__, sta_map_count);
     if (ipstat <= sta_map_count) {
         wifi_util_dbg_print(WIFI_MON, "%s:%d ipstat:%d less than or equal to stamap count:%d are  \r\n", __func__, __LINE__,ipstat,sta_map_count);
         return RETURN_OK;
@@ -1481,9 +1482,14 @@ void send_wifi_disconnect_event_to_ctrl(mac_address_t mac_addr, unsigned int ap_
     memset(&assoc_data, 0, sizeof(assoc_data));
 
     memcpy(assoc_data.dev_stats.cli_MACAddress, mac_addr, sizeof(mac_address_t));
+
     assoc_data.ap_index = ap_index;
     assoc_data.reason = 0;
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d Sending disconnect event to ctrl for mac:%02x:%02x:%02x:%02x:%02x:%02x on ap_index:%d\n", __func__, __LINE__,
+            mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5], ap_index);
     push_event_to_ctrl_queue(&assoc_data, sizeof(assoc_data), wifi_event_type_hal_ind, wifi_event_hal_disassoc_device, NULL);
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d Event pushed to ctrl queue for mac:%02x:%02x:%02x:%02x:%02x:%02x on ap_index:%d\n", __func__, __LINE__,
+            mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5], ap_index);
 }
 
 sta_data_t *create_sta_data_hash_map(hash_map_t *sta_map, mac_addr_t l_sta_mac)
@@ -1792,6 +1798,8 @@ sta_data_t *process_connect_add_sta(unsigned int ap_index, auth_deauth_dev_t *de
 
     str_tolower(sta_key);
     sta = (sta_data_t *)hash_map_get(sta_map, sta_key);
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d sta map entry: %p for Device:%s connected on ap:%d\n", __func__, __LINE__,
+        sta, sta_key, ap_index);
     if (sta == NULL) { /* new client */
         sta = (sta_data_t *)malloc(sizeof(sta_data_t));
         if (sta == NULL) {
@@ -1803,6 +1811,8 @@ sta_data_t *process_connect_add_sta(unsigned int ap_index, auth_deauth_dev_t *de
         memcpy(sta->sta_mac, dev->sta_mac, sizeof(mac_addr_t));
         memcpy(sta->dev_stats.cli_MACAddress, dev->sta_mac, sizeof(mac_addr_t));
         hash_map_put(sta_map, strdup(sta_key), sta);
+        wifi_util_info_print(WIFI_MON, "MJ %s:%d new client added to sta map for Device:%s connected on ap:%d mac: " MACSTR "\n", __func__, __LINE__,
+            sta_key, ap_index, MAC2STR(sta->sta_mac));
     }
 
     clock_gettime(CLOCK_MONOTONIC, &tv_now);
@@ -1877,15 +1887,19 @@ void process_connect_remove_duplicates(unsigned int ap_index, auth_deauth_dev_t 
             continue;
 
         vap_status = g_monitor_module.bssid_data[vap_index].ap_params.ap_status;
+        wifi_util_dbg_print(WIFI_MON, "MJ %s:%d vap_index: %d ap_status: %d\n", __func__, __LINE__, vap_index, vap_status);
         if (vap_status) {
             sta_map = g_monitor_module.bssid_data[i].sta_map;
             to_sta_key(dev->sta_mac, sta_key);
             str_tolower(sta_key);
             sta = (sta_data_t *)hash_map_get(sta_map, sta_key);
+            wifi_util_dbg_print(WIFI_MON, "MJ %s:%d sta map entry: %p for Device:%s connected on ap:%d mac: " MACSTR "\n", __func__, __LINE__, sta, sta_key, vap_index, MAC2STR(dev->sta_mac));
             if ((sta != NULL) && (sta->dev_stats.cli_Active == true)) {
                 sta->dev_stats.cli_Active = false;
+                wifi_util_dbg_print(WIFI_MON, "MJ %s:%d Device:%s disconnected on ap:%d due to new connection on ap:%d\n", __func__, __LINE__, sta_key, vap_index, ap_index);
             } else if ((sta != NULL) && (sta->connection_authorized == true)) {
                 sta->connection_authorized = false;
+                wifi_util_dbg_print(WIFI_MON, "MJ %s:%d Device:%s connection deauthorized on ap:%d due to new connection on ap:%d\n", __func__, __LINE__, sta_key, vap_index, ap_index);
             }
         }
     }
@@ -1905,6 +1919,7 @@ void process_connect(unsigned int ap_index, auth_deauth_dev_t *dev)
             if (dev->mld_info.cli_LinkInfo[link_idx].cli_Valid) {
                 UINT link_vap_index = dev->mld_info.cli_LinkInfo[link_idx].cli_VapIndex;
                 sta = process_connect_add_sta(link_vap_index, dev);
+                wifi_util_info_print(WIFI_MON, "%s:%d MLD link vap_index %d for sta %s\n", __func__, __LINE__, link_vap_index, to_sta_key(dev->sta_mac, sta_key));
                 if (sta == NULL) {
                     wifi_util_error_print(WIFI_MON, "%s:%d Add STA failed!\r\n", __func__, __LINE__);
                     pthread_mutex_unlock(&g_monitor_module.data_lock);
@@ -1942,6 +1957,7 @@ static void disconnect_sta(sta_data_t *sta, unsigned int vap_array_index)
     t_tmp.tv_sec = sta->total_connected_time.tv_sec;
     t_tmp.tv_nsec = sta->total_connected_time.tv_nsec;
     timespecadd(&t_tmp, &t_diff, &(sta->total_connected_time));
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d Device:%s disconnected on vap_index:%d\n", __func__, __LINE__, to_sta_key(sta->sta_mac, sta_key), vap_array_index);
     sta->dev_stats.cli_Active = false;
     sta->connection_authorized = false;
     if (!sta->deauth_monitor_start_time)
@@ -1992,10 +2008,11 @@ void process_disconnect(unsigned int ap_index, auth_deauth_dev_t *dev)
     getVAPArrayIndexFromVAPIndex(ap_index, &vap_array_index);
     pthread_mutex_lock(&g_monitor_module.data_lock);
     sta_map = g_monitor_module.bssid_data[vap_array_index].sta_map;
-    wifi_util_info_print(WIFI_MON, "Device:%s disconnected on ap:%d\n",
-        to_sta_key(dev->sta_mac, sta_key), ap_index);
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%dDevice:%s disconnected on ap:%d \n", __func__, __LINE__, to_sta_key(dev->sta_mac, sta_key), ap_index);
     str_tolower(sta_key);
     sta = (sta_data_t *)hash_map_get(sta_map, sta_key);
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d sta map entry: %p for Device:%s disconnected on ap:%d mac: " MACSTR "\n", __func__, __LINE__,
+        sta, sta_key, ap_index, MAC2STR(dev->sta_mac));
     if (sta == NULL) {
         wifi_util_info_print(WIFI_MON, "Device:%s could not be found on sta map of ap:%d\n",
             sta_key, ap_index);
@@ -3124,7 +3141,7 @@ bool active_sta_connection_status(int ap_index, char *mac)
     str_tolower(mac);
     sta = (sta_data_t *)hash_map_get(sta_map, mac);
     wifi_util_dbg_print(WIFI_MON, "MJ %s:%d: sta:%s connection authorized status is %d on vap:%d mac: " MACSTR "\n", __func__, __LINE__, mac,
-        (sta != NULL) ? sta->connection_authorized : -1, ap_index);
+        (sta != NULL) ? sta->connection_authorized : -1, ap_index, MAC2STR((unsigned char *)mac));
     if (sta == NULL) {
         wifi_util_dbg_print(WIFI_MON, "%s:%d: return, sta:%s is not part of hashmap on vap:%d\n",
             __func__, __LINE__, mac, ap_index);
@@ -3439,6 +3456,10 @@ int device_disassociated(int ap_index, char *src_mac, char *dest_mac, int type, 
     data->u.dev.sta_mac[0] = mac_addr[0]; data->u.dev.sta_mac[1] = mac_addr[1]; data->u.dev.sta_mac[2] = mac_addr[2];
     data->u.dev.sta_mac[3] = mac_addr[3]; data->u.dev.sta_mac[4] = mac_addr[4]; data->u.dev.sta_mac[5] = mac_addr[5];
     data->u.dev.reason = reason;
+    wifi_util_info_print(WIFI_MON, "MJ %s:%d:Device disassociated on interface:%d mac:%02x:%02x:%02x:%02x:%02x:%02x reason:%d\n",
+          __func__, __LINE__, ap_index,
+          data->u.dev.sta_mac[0], data->u.dev.sta_mac[1], data->u.dev.sta_mac[2],
+          data->u.dev.sta_mac[3], data->u.dev.sta_mac[4], data->u.dev.sta_mac[5], reason);
     push_event_to_monitor_queue(data, wifi_event_monitor_disconnect, NULL);
     wifi_util_dbg_print(WIFI_MON, "MJ %s:%d: Device disassociated event pushed to monitor queue for interface:%d mac: " MACSTR " \n", __func__, __LINE__, ap_index, MAC2STR(mac_addr));
     free(data);
@@ -3456,7 +3477,7 @@ int device_disassociated(int ap_index, char *src_mac, char *dest_mac, int type, 
     assoc_data.ap_index = ap_index;
     assoc_data.reason = reason;
 
-    wifi_util_info_print(WIFI_MON, "%s:%d:Device diaassociated on interface:%d mac:%02x:%02x:%02x:%02x:%02x:%02x\n",
+    wifi_util_info_print(WIFI_MON, "MJ %s:%d:Device diaassociated on interface:%d mac:%02x:%02x:%02x:%02x:%02x:%02x\n",
           __func__, __LINE__, ap_index,
           assoc_data.dev_stats.cli_MACAddress[0], assoc_data.dev_stats.cli_MACAddress[1], assoc_data.dev_stats.cli_MACAddress[2],
           assoc_data.dev_stats.cli_MACAddress[3], assoc_data.dev_stats.cli_MACAddress[4], assoc_data.dev_stats.cli_MACAddress[5]);
@@ -3625,6 +3646,10 @@ int device_deauthenticated(int ap_index, char *src_mac, char *dest_mac, int type
     data->u.dev.sta_mac[0] = mac_addr[0]; data->u.dev.sta_mac[1] = mac_addr[1]; data->u.dev.sta_mac[2] = mac_addr[2];
     data->u.dev.sta_mac[3] = mac_addr[3]; data->u.dev.sta_mac[4] = mac_addr[4]; data->u.dev.sta_mac[5] = mac_addr[5];
     data->u.dev.reason = reason;
+    wifi_util_info_print(WIFI_MON, "MJ %s:%d: Device deauthenticated on interface:%d mac:%02x:%02x:%02x:%02x:%02x:%02x reason:%d\n",
+          __func__, __LINE__, ap_index,
+          data->u.dev.sta_mac[0], data->u.dev.sta_mac[1], data->u.dev.sta_mac[2],
+          data->u.dev.sta_mac[3], data->u.dev.sta_mac[4], data->u.dev.sta_mac[5], reason);
     push_event_to_monitor_queue(data, wifi_event_monitor_deauthenticate, NULL);
     wifi_util_dbg_print(WIFI_MON, "MJ %s:%d: Device deauthenticated event pushed to monitor queue for interface:%d mac: " MACSTR " \n", __func__, __LINE__, ap_index, MAC2STR(mac_addr));
     free(data);
@@ -3645,7 +3670,6 @@ int device_deauthenticated(int ap_index, char *src_mac, char *dest_mac, int type
           __func__, __LINE__, ap_index,
           assoc_data.dev_stats.cli_MACAddress[0], assoc_data.dev_stats.cli_MACAddress[1], assoc_data.dev_stats.cli_MACAddress[2],
           assoc_data.dev_stats.cli_MACAddress[3], assoc_data.dev_stats.cli_MACAddress[4], assoc_data.dev_stats.cli_MACAddress[5], reason);
-
     push_event_to_ctrl_queue(&assoc_data, sizeof(assoc_data), wifi_event_type_hal_ind, wifi_event_hal_disassoc_device, NULL);
     wifi_util_dbg_print(WIFI_MON, "MJ %s:%d: Device deauthenticated event pushed to ctrl queue for interface:%d mac: " MACSTR " \n", __func__, __LINE__, assoc_data.ap_index, MAC2STR(assoc_data.dev_stats.cli_MACAddress));
 
@@ -3974,10 +3998,14 @@ int device_associated(int ap_index, wifi_associated_dev_t *associated_dev)
     }
 
     assoc_data.ap_index = data->ap_index;
+    wifi_util_info_print(WIFI_MON, "MJ %s:%d:  Device associated on interface:%d mac: " MACSTR " with reason %d\n",
+          __func__, __LINE__, data->ap_index, MAC2STR(data->u.dev.sta_mac), assoc_data.reason);
     push_event_to_ctrl_queue(&assoc_data, sizeof(assoc_data), wifi_event_type_hal_ind, wifi_event_hal_assoc_device, NULL);
     wifi_util_dbg_print(WIFI_MON, "MJ %s:%d: Device associated event pushed to ctrl queue for interface:%d mac: " MACSTR " \n",
             __func__, __LINE__, data->ap_index, MAC2STR(data->u.dev.sta_mac));
     memcpy(&data->u.dev.dev_stats, &assoc_data.dev_stats, sizeof(wifi_associated_dev3_t));
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d pushing device associated event to monitor queue for interface:%d mac: " MACSTR " \n",
+            __func__, __LINE__, data->ap_index, MAC2STR(data->u.dev.sta_mac));
     push_event_to_monitor_queue(data, wifi_event_monitor_connect, NULL);
     wifi_util_dbg_print(WIFI_MON, "MJ %s:%d: Device associated event pushed to monitor queue for interface:%d mac: " MACSTR " \n",
             __func__, __LINE__, data->ap_index, MAC2STR(data->u.dev.sta_mac));
