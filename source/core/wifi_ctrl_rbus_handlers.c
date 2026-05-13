@@ -3756,8 +3756,8 @@ int events_bus_publish(wifi_event_t *evt)
                 wifi_util_error_print(WIFI_CTRL, "%s(): bus_event_publish_fn Event failed: %d\n",
                     __FUNCTION__, rc);
             } else {
-                wifi_util_dbg_print(WIFI_CTRL, "%s(): Event - %s %s \n", __FUNCTION__,
-                    wifi_event_subtype_to_string(evt->sub_type), eventName);
+                wifi_util_dbg_print(WIFI_CTRL, "MJ %s(): Event - %s %s %d\n", __FUNCTION__,
+                    wifi_event_subtype_to_string(evt->sub_type), eventName, evt->u.mon_data->ap_index);
             }
         }
         break;
