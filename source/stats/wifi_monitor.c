@@ -1908,7 +1908,6 @@ void process_connect_remove_duplicates(unsigned int ap_index, auth_deauth_dev_t 
 void process_connect(unsigned int ap_index, auth_deauth_dev_t *dev)
 {
     sta_data_t *sta = NULL;
-    sta_key_t sta_key;
 
     wifi_util_info_print(WIFI_MON, "%s:%d process_connect start ap_index %d mld sta: %d\n",
         __func__, __LINE__, ap_index, dev->mld_info.cli_MLDSta);
