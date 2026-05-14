@@ -1908,18 +1908,19 @@ void process_connect_remove_duplicates(unsigned int ap_index, auth_deauth_dev_t 
 void process_connect(unsigned int ap_index, auth_deauth_dev_t *dev)
 {
     sta_data_t *sta = NULL;
+    sta_key_t sta_key;
 
     wifi_util_info_print(WIFI_MON, "%s:%d process_connect start ap_index %d mld sta: %d\n",
         __func__, __LINE__, ap_index, dev->mld_info.cli_MLDSta);
 
     pthread_mutex_lock(&g_monitor_module.data_lock);
     process_connect_remove_duplicates(ap_index, dev);
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d process_connect after removing duplicates for ap_index %d mld sta: %d\n", __func__, __LINE__, ap_index, dev->mld_info.cli_MLDSta);
     if (dev->mld_info.cli_MLDSta == true) {
         for (int link_idx = 0; link_idx < MAX_NUM_RADIOS; link_idx++) {
             if (dev->mld_info.cli_LinkInfo[link_idx].cli_Valid) {
                 UINT link_vap_index = dev->mld_info.cli_LinkInfo[link_idx].cli_VapIndex;
                 sta = process_connect_add_sta(link_vap_index, dev);
-                wifi_util_info_print(WIFI_MON, "%s:%d MLD link vap_index %d for sta %s\n", __func__, __LINE__, link_vap_index, to_sta_key(dev->sta_mac, sta_key));
                 if (sta == NULL) {
                     wifi_util_error_print(WIFI_MON, "%s:%d Add STA failed!\r\n", __func__, __LINE__);
                     pthread_mutex_unlock(&g_monitor_module.data_lock);
@@ -1933,7 +1934,7 @@ void process_connect(unsigned int ap_index, auth_deauth_dev_t *dev)
     } else {
         sta = process_connect_add_sta(ap_index, dev);
         if (sta == NULL) {
-            wifi_util_error_print(WIFI_MON, "%s:%d Add STA failed!\r\n", __func__, __LINE__);
+            wifi_util_error_print(WIFI_MON, "MJ %s:%d Add STA failed!\r\n", __func__, __LINE__);
             pthread_mutex_unlock(&g_monitor_module.data_lock);
             return;
         }
@@ -1957,7 +1958,7 @@ static void disconnect_sta(sta_data_t *sta, unsigned int vap_array_index)
     t_tmp.tv_sec = sta->total_connected_time.tv_sec;
     t_tmp.tv_nsec = sta->total_connected_time.tv_nsec;
     timespecadd(&t_tmp, &t_diff, &(sta->total_connected_time));
-    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d Device:%s disconnected on vap_index:%d\n", __func__, __LINE__, to_sta_key(sta->sta_mac, sta_key), vap_array_index);
+    wifi_util_dbg_print(WIFI_MON, "MJ %s:%d disconnected on vap_index:%d\n", __func__, __LINE__, vap_array_index);
     sta->dev_stats.cli_Active = false;
     sta->connection_authorized = false;
     if (!sta->deauth_monitor_start_time)
