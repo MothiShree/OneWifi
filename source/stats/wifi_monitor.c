@@ -1834,7 +1834,7 @@ sta_data_t *process_connect_add_sta(unsigned int ap_index, auth_deauth_dev_t *de
         sta->assoc_monitor_start_time = tv_now.tv_sec;
 
     if ((UINT)(tv_now.tv_sec - sta->last_disconnected_time.tv_sec) <=
-        g_monitor_module.bssid_data[i].ap_params.rapid_reconnect_threshold) {
+        g_monitor_module.bssid_data[vap_array_index].ap_params.rapid_reconnect_threshold) {
         if (sta->dev_stats.cli_Active == false) {
             wifi_util_dbg_print(WIFI_MON,
                 "Device:%s connected on ap:%d connected within rapid reconnect time\n",
