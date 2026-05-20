@@ -1787,7 +1787,6 @@ sta_data_t *process_connect_add_sta(unsigned int ap_index, auth_deauth_dev_t *de
     sta_data_t *sta;
     hash_map_t *sta_map;
     struct timespec tv_now, t_diff, t_tmp;
-    unsigned int i = 0;
     unsigned int vap_array_index;
     getVAPArrayIndexFromVAPIndex(ap_index, &vap_array_index);
 
