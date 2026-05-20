@@ -3431,8 +3431,27 @@ bool is_bandwidth_and_hw_variant_compatible(uint32_t variant, wifi_channelBandwi
         }
     }
 #endif /* CONFIG_IEEE80211BE */
+
+    wifi_util_info_print(WIFI_WEBCONFIG,
+        "MJ %s:%d variant=%u current_bw=%u computed_supported_bw=%u flags[A:%u B:%u G:%u N:%u H:%u AC:%u AD:%u AX:%u"
+#ifdef CONFIG_IEEE80211BE
+        " BE:%u"
+#endif
+        "]\n",
+        __func__, __LINE__, variant, current_bw, supported_bw,
+        !!(variant & WIFI_80211_VARIANT_A), !!(variant & WIFI_80211_VARIANT_B),
+        !!(variant & WIFI_80211_VARIANT_G), !!(variant & WIFI_80211_VARIANT_N),
+        !!(variant & WIFI_80211_VARIANT_H), !!(variant & WIFI_80211_VARIANT_AC),
+        !!(variant & WIFI_80211_VARIANT_AD), !!(variant & WIFI_80211_VARIANT_AX)
+#ifdef CONFIG_IEEE80211BE
+        , !!(variant & WIFI_80211_VARIANT_BE)
+#endif
+    );
+
     if (supported_bw < current_bw) {
-        wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d variant:%d supported bandwidth:%d current_bw:%d \r\n", __func__, __LINE__, variant, supported_bw, current_bw);
+        wifi_util_error_print(WIFI_WEBCONFIG,
+            "MJ %s:%d bandwidth/variant mismatch variant=%u supported_bw=%u current_bw=%u\n",
+            __func__, __LINE__, variant, supported_bw, current_bw);
         return false;
     } else {
         return true;
@@ -3443,13 +3462,23 @@ int validate_radio_parameters(const wifi_radio_operationParam_t *radio_info)
 {
     bool l_bool_status;
 
+    wifi_util_info_print(WIFI_WEBCONFIG,
+        "MJ %s:%d validate input band=%u variant=%u channelWidth=%u channel=%u DfsEnabled=%u\n",
+        __func__, __LINE__, radio_info->band, radio_info->variant, radio_info->channelWidth,
+        radio_info->channel, radio_info->DfsEnabled);
+
     if (validate_wifi_hw_variant(radio_info->band, radio_info->variant) != RETURN_OK) {
-        wifi_util_dbg_print(WIFI_WEBCONFIG,"%s:%d: wifi hw mode[%d] validation failure\n",__func__, __LINE__, radio_info->variant);
+        wifi_util_error_print(WIFI_WEBCONFIG,
+            "MJ %s:%d validate_wifi_hw_variant failed band=%u variant=%u\n",
+            __func__, __LINE__, radio_info->band, radio_info->variant);
         return RETURN_ERR;
     }
 
     l_bool_status = is_bandwidth_and_hw_variant_compatible(radio_info->variant, radio_info->channelWidth);
     if (l_bool_status == false) {
+        wifi_util_error_print(WIFI_WEBCONFIG,
+            "MJ %s:%d is_bandwidth_and_hw_variant_compatible failed variant=%u channelWidth=%u\n",
+            __func__, __LINE__, radio_info->variant, radio_info->channelWidth);
         return RETURN_ERR;
     }
 

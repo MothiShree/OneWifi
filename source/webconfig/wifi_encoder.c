@@ -37,6 +37,7 @@
 
 #define TCM_WEIGH "0.6"
 #define TCMTHRESHOLD "0.18"
+
 webconfig_error_t encode_radio_setup_object(const rdk_wifi_vap_map_t *vap_map, cJSON *radio_object)
 {
     cJSON *obj_array, *obj;
@@ -110,6 +111,7 @@ webconfig_error_t encode_radio_curr_operating_classes(const wifi_radio_operation
 webconfig_error_t encode_radio_object(const rdk_wifi_radio_t *radio, cJSON *radio_object)
 {
     const wifi_radio_operationParam_t *radio_info;
+    wifi_radio_operationParam_t radio_info_local;
     const wifi_radio_feature_param_t *radio_feat;
     char out_list[BUFFER_LENGTH_WIFIDB] = { 0 }, str[BUFFER_LENGTH_WIFIDB] = { 0 };
     char chan_buf[512] = {0};
@@ -130,11 +132,20 @@ webconfig_error_t encode_radio_object(const rdk_wifi_radio_t *radio, cJSON *radi
     // RadioName
     cJSON_AddStringToObject(radio_object, "RadioName", radio->name);
 
-    radio_info = &radio->oper;
+    radio_info_local = radio->oper;
+    radio_info = &radio_info_local;
     radio_feat = &radio->feature;
 
+    wifi_util_info_print(WIFI_WEBCONFIG,
+        "MJ %s:%d pre-validate radio=%s band=%u variant=%u bw=%u channel=%u\n",
+        __func__, __LINE__, radio->name, radio_info->band, radio_info->variant,
+        radio_info->channelWidth, radio_info->channel);
+
     if (validate_radio_parameters(radio_info) != RETURN_OK) {
-        wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d Radio parameters validatation failed\n", __func__, __LINE__);
+        wifi_util_error_print(WIFI_WEBCONFIG,
+            "MJ %s:%d Radio parameters validation failed name=%s variant=%u bw=%u band=%u channel=%u\n",
+            __func__, __LINE__, radio->name, radio_info->variant, radio_info->channelWidth,
+            radio_info->band, radio_info->channel);
         return webconfig_error_encode;
     }
 
