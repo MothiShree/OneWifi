@@ -587,8 +587,12 @@ bus_error_t webconfig_init_data_get_subdoc(char *event_name, raw_data_t *p_data,
             sizeof(wifi_hal_capability_t));
         data.u.decoded.num_radios = num_of_radios;
         // tell webconfig to encode
-	webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_dml);
-
+	if(webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_dml)){
+        webconfig_data_free(&data);
+        free(data);
+        return bus_error_general;
+    }
+        
         uint32_t str_size = (strlen(data.u.encoded.raw) + 1);
         p_data->data_type = bus_data_type_string;
         p_data->raw_data.bytes = malloc(str_size);
