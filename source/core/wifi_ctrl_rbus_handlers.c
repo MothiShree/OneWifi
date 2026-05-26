@@ -587,7 +587,9 @@ bus_error_t webconfig_init_data_get_subdoc(char *event_name, raw_data_t *p_data,
             sizeof(wifi_hal_capability_t));
         data.u.decoded.num_radios = num_of_radios;
         // tell webconfig to encode
-	if(webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_dml)){
+	if(webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_dml) != webconfig_error_none) {
+             wifi_util_error_print(WIFI_CTRL, "%s:%d webconfig_encode failed\n", __func__,
+                __LINE__);
         webconfig_data_free(&data);
         free(data);
         return bus_error_general;
@@ -620,9 +622,17 @@ bus_error_t webconfig_init_data_get_subdoc(char *event_name, raw_data_t *p_data,
 	if (ctrl->dev_type != dev_subtype_pod) {
 		memcpy((unsigned char *)&data.u.decoded.config, (unsigned char *)&mgr->global_config,
 				sizeof(wifi_global_config_t));
-		webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_dml);
+		if (webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_dml) != webconfig_error_none) {
+            webconfig_data_free(&data);
+            free(data);
+            return bus_error_general;
+        }
 	} else {
-		webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_mesh_sta);
+		if (webconfig_encode(&ctrl->webconfig, &data, webconfig_subdoc_type_mesh_sta) != webconfig_error_none) {
+            webconfig_data_free(&data);
+            free(data);
+            return bus_error_general;
+        }
 	}
 
         uint32_t str_size = (strlen(data.u.encoded.raw) + 1);
