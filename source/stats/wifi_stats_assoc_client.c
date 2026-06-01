@@ -518,7 +518,19 @@ int execute_assoc_client_stats_api(wifi_mon_collector_element_t *c_elem, wifi_mo
                         }
                     }
                 }
+                if (isVapSTAMesh(args->vap_index) == false &&
+                    (isVapMeshBackhaul(args->vap_index) == true) &&
+                    (sta->dev_stats.cli_Active == false) &&
+                    (sta->last_disconnected_time.tv_sec == 0) &&
+                    (timespecisset(&sta->last_connected_time))) {
 
+                    wifi_util_dbg_print(WIFI_MON,
+                        "[%s:%d] Backhaul STA %s on vap:%d has zero disconnect time and "
+                        "is inactive — treating as stale, forcing removal\n",
+                        __func__, __LINE__, to_sta_key(sta->sta_mac, sta_key), args->vap_index);
+
+                    tmp_sta = sta;
+                }
                 if ((disconnected_time > mon_data->bssid_data[vap_array_index]
                                              .ap_params.rapid_reconnect_threshold) &&
                     (sta->dev_stats.cli_Active == false)) {

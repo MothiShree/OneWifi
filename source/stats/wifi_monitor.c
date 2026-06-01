@@ -2036,6 +2036,11 @@ void process_connect_remove_duplicates(unsigned int ap_index, auth_deauth_dev_t 
             sta = (sta_data_t *)hash_map_get(sta_map, sta_key);
             if ((sta != NULL) && (sta->dev_stats.cli_Active == true)) {
                 sta->dev_stats.cli_Active = false;
+                wifi_util_dbg_print(WIFI_MON,
+                    "%s:%d Device:%s moved from vap:%d to vap:%d, "
+                    "sending disconnect for old vap\n",
+                    __func__, __LINE__, sta_key, vap_index, ap_index);
+                send_wifi_disconnect_event_to_ctrl(dev->sta_mac, vap_index);
             } else if ((sta != NULL) && (sta->connection_authorized == true)) {
                 sta->connection_authorized = false;
             }
@@ -2153,6 +2158,7 @@ void process_disconnect(unsigned int ap_index, auth_deauth_dev_t *dev)
         wifi_util_info_print(WIFI_MON, "Device:%s could not be found on sta map of ap:%d\n",
             sta_key, ap_index);
         pthread_mutex_unlock(&g_monitor_module.data_lock);
+        send_wifi_disconnect_event_to_ctrl(dev->sta_mac, ap_index);
         return;
     }
 
