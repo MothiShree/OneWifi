@@ -527,8 +527,14 @@ int execute_assoc_client_stats_api(wifi_mon_collector_element_t *c_elem, wifi_mo
             } else {
                 // client never connected, only storing the assoc request.
                 if (tv_now.tv_sec - sta->assoc_frame_data.frame_timestamp > 5) {
-                    // remove this entry after 5 seconds, should not trigger a disconnect event.
-                    send_disconnect_event = 0;
+                    /* Only suppress the disconnect event for pure probe/assoc-request
+                     * entries that have no valid MAC (sta_mac == 00:00:...).  If
+                     * sta_mac is valid the entry may have been created via the HAL
+                     * stats-poll path during the pre-init race window; wifiCtrl
+                     * might hold an OVSDB row for this MAC that needs cleanup. */
+                    if (is_zero_mac(sta->sta_mac)) {
+                        send_disconnect_event = 0;
+                    }
                     tmp_sta = sta;
                 }
             }

@@ -2338,6 +2338,12 @@ void *monitor_function  (void *data)
     /* Set the monitor_initialization_done flag to notify */
     monitor_initialization_done = true;
 
+    /* Replay any events that were buffered while the monitor was initialising.
+     * This must happen before the periodic HAL poll adds entries to sta_map so
+     * that connect/disconnect pairs received during boot are processed in order
+     * and stale OVSDB entries are not created. */
+    drain_pre_init_monitor_queue();
+
     prctl(PR_SET_NAME,  __func__, 0, 0, 0);
 
     proc_data = (wifi_monitor_t *)data;

@@ -30,6 +30,42 @@
 
 extern bool monitor_initialization_done;
 
+/* Pre-init buffer: events that arrive before wifiMon finishes initialising are
+ * buffered here and replayed in order once drain_pre_init_monitor_queue() is
+ * called (immediately after monitor_initialization_done is set to true).
+ * 64 slots is well above the worst-case burst seen in field logs (~4 events). */
+#define PRE_INIT_MON_BUF_MAX   64
+static wifi_event_t   *pre_init_mon_buf[PRE_INIT_MON_BUF_MAX];
+static int             pre_init_mon_buf_cnt = 0;
+static pthread_mutex_t pre_init_mon_buf_lock = PTHREAD_MUTEX_INITIALIZER;
+
+void drain_pre_init_monitor_queue(void)
+{
+    wifi_monitor_t *monitor_param = (wifi_monitor_t *)get_wifi_monitor();
+    int i;
+
+    pthread_mutex_lock(&pre_init_mon_buf_lock);
+    for (i = 0; i < pre_init_mon_buf_cnt; i++) {
+        wifi_util_info_print(WIFI_CTRL,
+            "%s %d: Replaying pre-init monitor event %d/%d\n",
+            __FUNCTION__, __LINE__, i + 1, pre_init_mon_buf_cnt);
+        pthread_mutex_lock(&monitor_param->queue_lock);
+        if (queue_count(monitor_param->queue) < (unsigned int)MONITOR_QUEUE_SIZE_MAX) {
+            queue_push(monitor_param->queue, pre_init_mon_buf[i]);
+            pthread_cond_signal(&monitor_param->cond);
+        } else {
+            wifi_util_error_print(WIFI_CTRL,
+                "%s %d: Monitor queue full during replay, dropping pre-init event\n",
+                __FUNCTION__, __LINE__);
+            destroy_wifi_event(pre_init_mon_buf[i]);
+        }
+        pthread_mutex_unlock(&monitor_param->queue_lock);
+        pre_init_mon_buf[i] = NULL;
+    }
+    pre_init_mon_buf_cnt = 0;
+    pthread_mutex_unlock(&pre_init_mon_buf_lock);
+}
+
 const char *wifi_event_type_to_string(wifi_event_type_t type)
 {
 #define DOC2S(x) \
@@ -834,12 +870,6 @@ int push_event_to_monitor_queue(wifi_monitor_data_t *mon_data, wifi_event_subtyp
     wifi_event_t *event;
     bool is_limit_reached;
 
-    /* Check if monitor queue is initialized */
-    if (monitor_initialization_done == false) {
-        wifi_util_error_print(WIFI_CTRL, "%s %d: Monitor queue is not ready yet. subtype: %s\n",
-            __FUNCTION__, __LINE__, wifi_event_subtype_to_string(sub_type));
-        return RETURN_ERR;
-    }
     if (mon_data == NULL) {
         wifi_util_error_print(WIFI_CTRL, "%s %d: input monitor data is null\n", __FUNCTION__,
             __LINE__);
@@ -857,6 +887,27 @@ int push_event_to_monitor_queue(wifi_monitor_data_t *mon_data, wifi_event_subtyp
         wifi_util_error_print(WIFI_CTRL, "%s %d unable to copy msg to event for sub_type : %s\n",
             __FUNCTION__, __LINE__, wifi_event_subtype_to_string(sub_type));
         destroy_wifi_event(event);
+        return RETURN_ERR;
+    }
+
+    /* If the monitor queue is not yet ready, buffer the event for replay rather
+     * than dropping it.  This prevents connect/disconnect pairs from being lost
+     * during the ~90-second boot window between HAL-up and wifiMon init. */
+    if (monitor_initialization_done == false) {
+        pthread_mutex_lock(&pre_init_mon_buf_lock);
+        if (pre_init_mon_buf_cnt < PRE_INIT_MON_BUF_MAX) {
+            pre_init_mon_buf[pre_init_mon_buf_cnt++] = event;
+            wifi_util_info_print(WIFI_CTRL,
+                "%s %d: Monitor not ready, buffered pre-init event (%d). subtype: %s\n",
+                __FUNCTION__, __LINE__, pre_init_mon_buf_cnt,
+                wifi_event_subtype_to_string(sub_type));
+        } else {
+            wifi_util_error_print(WIFI_CTRL,
+                "%s %d: Pre-init buffer full, dropping event. subtype: %s\n",
+                __FUNCTION__, __LINE__, wifi_event_subtype_to_string(sub_type));
+            destroy_wifi_event(event);
+        }
+        pthread_mutex_unlock(&pre_init_mon_buf_lock);
         return RETURN_ERR;
     }
 
