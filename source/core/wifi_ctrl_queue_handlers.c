@@ -117,6 +117,11 @@ void process_scan_results_event(scan_results_t *results, unsigned int len)
 
     ext_svc = get_svc_by_type(ctrl, vap_svc_type_mesh_ext);
     if (is_sta_enabled()) {
+        if (ext_svc == NULL) {
+            wifi_util_error_print(WIFI_CTRL, "%s:%d mesh_ext svc not found, dropping scan results\n",
+                __func__, __LINE__);
+            return;
+        }
         ext_svc->event_fn(ext_svc, wifi_event_type_hal_ind, wifi_event_scan_results, vap_svc_event_none, results);
     }
 }
@@ -1019,7 +1024,12 @@ void process_sta_conn_status_event(rdk_sta_data_t *sta_data, unsigned int len)
 
     ext_svc = get_svc_by_type(ctrl, vap_svc_type_mesh_ext);
 
-    if(is_sta_enabled()) {
+    if (is_sta_enabled()) {
+        if (ext_svc == NULL) {
+            wifi_util_error_print(WIFI_CTRL, "%s:%d mesh_ext svc not found, dropping sta conn status\n",
+                __func__, __LINE__);
+            return;
+        }
         ext_svc->event_fn(ext_svc, wifi_event_type_hal_ind, wifi_event_hal_sta_conn_status, vap_svc_event_none, sta_data);
     }
 }
@@ -2191,7 +2201,7 @@ void process_assoc_device_event(void *data)
     if ((isVapPrivate(rdk_vap_info->vap_index))) {
         if (pcfg != NULL && pcfg->prefer_private) {
             pub_svc = get_svc_by_type(&p_wifi_mgr->ctrl, vap_svc_type_public);
-            if (pub_svc->event_fn != NULL) {
+            if (pub_svc != NULL && pub_svc->event_fn != NULL) {
                 memcpy(prefer_private_mac, assoc_data->dev_stats.cli_MACAddress, sizeof(mac_address_t));
                 pub_svc->event_fn(pub_svc, wifi_event_type_command, wifi_event_type_prefer_private_rfc,
                         add_prefer_private_acl_to_public, &prefer_private_mac);
@@ -2633,7 +2643,7 @@ void process_prefer_private_rfc(bool type)
         return ;
     }
     pub_svc = get_svc_by_type(&p_wifi_mgr->ctrl, vap_svc_type_public);
-    if (pub_svc->event_fn != NULL) {
+    if (pub_svc != NULL && pub_svc->event_fn != NULL) {
         pub_svc->event_fn(pub_svc, wifi_event_type_command, wifi_event_type_prefer_private_rfc,
                             add_macmode_to_public, &type);
     }
@@ -3140,6 +3150,10 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
     if ((ch_chg->event == WIFI_EVENT_CHANNELS_CHANGED) && (ctrl->network_mode == rdk_dev_mode_type_ext)) {
 
         ext_svc = get_svc_by_type(ctrl, vap_svc_type_mesh_ext);
+        if (ext_svc == NULL) {
+            wifi_util_error_print(WIFI_CTRL, "%s:%d mesh_ext svc not found\n", __FUNCTION__, __LINE__);
+            return;
+        }
         if (wifi_radio_operationParam_validation(&g_wifidb->hal_cap, &temp_radio_params) != RETURN_OK) {
             wifi_util_error_print(WIFI_CTRL,"%s:%d: channel: %d bw: %d on radio: %d could not be set\n",
                 __FUNCTION__, __LINE__, ch_chg->channel, ch_chg->channelWidth, ch_chg->radioIndex);
@@ -3151,7 +3165,7 @@ void process_channel_change_event(wifi_channel_change_event_t *ch_chg, bool is_n
     if (radio_params->band == WIFI_FREQUENCY_6_BAND ) {
         pub_svc = get_svc_by_type(ctrl, vap_svc_type_public);
         wifi_util_info_print(WIFI_CTRL,"6G radio channel changed update rrm\n");
-        if (pub_svc->event_fn != NULL) {
+        if (pub_svc != NULL && pub_svc->event_fn != NULL) {
             pub_svc->event_fn(pub_svc, wifi_event_type_command, wifi_event_type_xfinity_rrm,
                 vap_svc_event_none,NULL);
         }
