@@ -269,6 +269,65 @@ static int bytes_contain_zero(const msgpack_object_bin *bin)
     aux_buffer = aux_buffer + ret;                                      \
     aux_buffer_size = aux_buffer_size - ret
 
+/* Write a JSON-escaped string (with surrounding quotes) into buffer.
+ * Returns number of bytes written, or 0 if the buffer is too small. */
+static size_t snprintf_json_str(char *buffer, size_t buf_size, const char *str, size_t str_len)
+{
+    size_t i;
+    size_t written = 0;
+
+    if (buf_size < 3) {
+        return 0;
+    }
+
+    buffer[written++] = '"';
+
+    for (i = 0; i < str_len; i++) {
+        unsigned char c = (unsigned char)str[i];
+        const char *esc = NULL;
+        char esc_buf[8];
+
+        switch (c) {
+        case '\\': esc = "\\\\"; break;
+        case '\"': esc = "\\\""; break;
+        case '\b': esc = "\\b"; break;
+        case '\f': esc = "\\f"; break;
+        case '\n': esc = "\\n"; break;
+        case '\r': esc = "\\r"; break;
+        case '\t': esc = "\\t"; break;
+        default:
+            if (c < 0x20) {
+                snprintf(esc_buf, sizeof(esc_buf), "\\u%04x", c);
+                esc = esc_buf;
+            }
+            break;
+        }
+
+        if (esc) {
+            size_t esc_len = strlen(esc);
+            if (written + esc_len + 1 >= buf_size) {
+                return 0;
+            }
+            memcpy(buffer + written, esc, esc_len);
+            written += esc_len;
+        } else {
+            if (written + 2 >= buf_size) {
+                return 0;
+            }
+            buffer[written++] = (char)c;
+        }
+    }
+
+    if (written + 1 >= buf_size) {
+        return 0;
+    }
+
+    buffer[written++] = '"';
+    buffer[written] = '\0';
+
+    return written;
+}
+
 /*
  * Convert msgpack format data to json string.
  * return >0: success, 0: length of buffer not enough, -1: failed
@@ -322,7 +381,7 @@ size_t msgpack_object_print_jsonstr(char *buffer, size_t length, const msgpack_o
 #endif
 
     case MSGPACK_OBJECT_STR:
-        PRINT_JSONSTR_CALL(ret, snprintf, aux_buffer, aux_buffer_size, "\"%.*s\"", (int)o.via.str.size, o.via.str.ptr);
+        PRINT_JSONSTR_CALL(ret, snprintf_json_str, aux_buffer, aux_buffer_size, o.via.str.ptr, o.via.str.size);
         break;
 
     case MSGPACK_OBJECT_BIN:
@@ -330,7 +389,7 @@ size_t msgpack_object_print_jsonstr(char *buffer, size_t length, const msgpack_o
             DEBUG("the value contains zero\n");
             return -1;
         }
-        PRINT_JSONSTR_CALL(ret, snprintf, aux_buffer, aux_buffer_size, "\"%.*s\"", (int)o.via.bin.size, o.via.bin.ptr);
+        PRINT_JSONSTR_CALL(ret, snprintf_json_str, aux_buffer, aux_buffer_size, o.via.bin.ptr, o.via.bin.size);
         break;
 
     case MSGPACK_OBJECT_EXT:
