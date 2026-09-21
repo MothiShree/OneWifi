@@ -2095,6 +2095,10 @@ bool wifi_factory_reset(bool factory_reset_all_vaps)
             wifidb_init_vap_config_default(vap_index,default_vap,&rdk_default_vap);
             wifidb_init_interworking_config_default(vap_index,&default_vap->u.bss_info.interworking);
             memcpy((unsigned char *)p_vapInfo,(unsigned char *)default_vap,sizeof(wifi_vap_info_t));
+            if (rdk_default_vap.exists == false && isVapPrivate(vap_index)) {
+                wifi_util_error_print(WIFI_DMCLI,"%s:%d VAP_EXISTS_FALSE for private vap_index=%d, setting to TRUE. \n",__FUNCTION__,__LINE__,vap_index);
+                rdk_default_vap.exists = true;
+            }
 #if !defined(_WNXL11BWL_PRODUCT_REQ_) && !defined(_PP203X_PRODUCT_REQ_) && !defined(_GREXT02ACTS_PRODUCT_REQ_)
             if(rdk_default_vap.exists == false) {
 #if defined(_SR213_PRODUCT_REQ_)
