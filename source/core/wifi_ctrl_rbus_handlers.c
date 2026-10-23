@@ -4363,7 +4363,8 @@ int events_bus_publish(wifi_event_t *evt)
         return 0;
     }
 
-    if (evt->sub_type != wifi_event_monitor_csi) {
+    if (evt->sub_type != wifi_event_monitor_csi &&
+        evt->sub_type != wifi_event_monitor_clear_sta_counters) {
         wifi_util_info_print(WIFI_CTRL, "%s(): bus_event_publish_fn Event %s\n", __FUNCTION__,
             wifi_event_subtype_to_string(evt->sub_type));
     }
