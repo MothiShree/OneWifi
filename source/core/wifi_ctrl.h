@@ -63,6 +63,7 @@ extern "C" {
 #define WIFI_SNR_LIST                      "Device.DeviceInfo.X_RDKCENTRAL-COM_WIFI_TELEMETRY.SNRList"
 #define WIFI_CLI_STAT_LIST                 "Device.DeviceInfo.X_RDKCENTRAL-COM_WIFI_TELEMETRY.CliStatList"
 #define WIFI_TxRx_RATE_LIST                "Device.DeviceInfo.X_RDKCENTRAL-COM_WIFI_TELEMETRY.TxRxRateList"
+#define WIFI_DEFAULT_TELEMETRY_LIST        "1,2,6,10,17,19,21"
 #define WIFI_DEVICE_MODE                   "Device.X_RDKCENTRAL-COM_DeviceControl.DeviceNetworkingMode"
 #define WIFI_DEVICE_TUNNEL_STATUS          "Device.X_COMCAST-COM_GRE.Tunnel.1.TunnelStatus"
 #define WIFI_HOTSPOT_STATUS                "Device.X_COMCAST-COM_GRE.Tunnel.1.Enable"

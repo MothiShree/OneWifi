@@ -960,7 +960,7 @@ void CosaDmlWiFiGetExternalDataFromPSM(void)
         }
     } else {
         wifi_util_dbg_print(WIFI_MON, "%s:%d The PSM_Get_Record_Value2  is failed with %d retval  \n",__FUNCTION__,__LINE__,retPsmGet);
-        strncpy(list, "1,2", sizeof(list)-1);
+        strncpy(list, WIFI_DEFAULT_TELEMETRY_LIST, sizeof(list)-1);
     }
     list[sizeof(list)-1] = '\0';
 
@@ -977,7 +977,7 @@ void CosaDmlWiFiGetExternalDataFromPSM(void)
         }
     } else {
         wifi_util_dbg_print(WIFI_MON, "%s:%d The PSM_Get_Record_Value2  is failed with %d retval  \n",__FUNCTION__,__LINE__,retPsmGet);
-        strncpy(list, "1,2", sizeof(list)-1);
+        strncpy(list, WIFI_DEFAULT_TELEMETRY_LIST, sizeof(list)-1);
     }
     list[sizeof(list)-1] = '\0';
 
@@ -994,7 +994,7 @@ void CosaDmlWiFiGetExternalDataFromPSM(void)
         }
     } else {
         wifi_util_dbg_print(WIFI_MON, "%s:%d The PSM_Get_Record_Value2  is failed with %d retval  \n",__FUNCTION__,__LINE__,retPsmGet);
-        strncpy(list, "1,2", sizeof(list)-1);
+        strncpy(list, WIFI_DEFAULT_TELEMETRY_LIST, sizeof(list)-1);
     }
     list[sizeof(list)-1] = '\0';
 

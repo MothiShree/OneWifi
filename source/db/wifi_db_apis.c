@@ -8386,12 +8386,9 @@ int wifidb_init_global_config_default(wifi_global_param_t *config)
     tempBuf[strlen(tempBuf)-1] = '\0';
     strncpy(cfg.normalized_rssi_list, tempBuf, sizeof(cfg.normalized_rssi_list)-1);
     cfg.normalized_rssi_list[sizeof(cfg.normalized_rssi_list)-1] = '\0';
-    strncpy(cfg.snr_list, tempBuf, sizeof(cfg.snr_list)-1);
-    cfg.snr_list[sizeof(cfg.snr_list)-1] = '\0';
-    strncpy(cfg.cli_stat_list, tempBuf, sizeof(cfg.cli_stat_list)-1);
-    cfg.cli_stat_list[sizeof(cfg.cli_stat_list)-1] = '\0';
-    strncpy(cfg.txrx_rate_list, tempBuf, sizeof(cfg.txrx_rate_list)-1);
-    cfg.txrx_rate_list[sizeof(cfg.txrx_rate_list)-1] = '\0';
+    snprintf(cfg.snr_list, sizeof(cfg.snr_list), "%s", WIFI_DEFAULT_TELEMETRY_LIST);
+    snprintf(cfg.cli_stat_list, sizeof(cfg.cli_stat_list), "%s", WIFI_DEFAULT_TELEMETRY_LIST);
+    snprintf(cfg.txrx_rate_list, sizeof(cfg.txrx_rate_list), "%s", WIFI_DEFAULT_TELEMETRY_LIST);
 
     cfg.mgt_frame_rate_limit_enable = false;
     cfg.mgt_frame_rate_limit = 10;
