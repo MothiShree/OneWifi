@@ -23,9 +23,16 @@
 #include "misc.h"
 #include "ccsp.h"
 #include "wifi_mgr.h"
+#if defined(FEATURE_SUPPORT_RDKLOG)
+#include "ccsp_trace.h"
+#endif
 
 int platform_init(bus_handle_t *handle)
 {
+#if defined(FEATURE_SUPPORT_RDKLOG)
+    RDK_LOGGER_INIT();
+#endif
+
     /* Initialize RBUS descriptor */
     bus_init(handle);
 

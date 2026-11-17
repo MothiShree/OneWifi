@@ -483,11 +483,6 @@ wifi_util_dbg_print(WIFI_MGR,"%s:%d: Inside ssp_main\n", __func__, __LINE__);
     /*
      *  Load the start configuration
      */
-#if defined(FEATURE_SUPPORT_RDKLOG)
-        RDK_LOGGER_INIT();
-wifi_util_dbg_print(WIFI_MGR,"%s:%d: RDK_LOGGER_INIT done!\n", __func__, __LINE__);
-#endif
-
  wifi_util_dbg_print(WIFI_MGR,"%s:%d: Allocating resources for start configuration!\n", __func__, __LINE__);
 
     gpWifiStartCfg = (PCCSP_COMPONENT_CFG)AnscAllocateMemory(sizeof(CCSP_COMPONENT_CFG));
